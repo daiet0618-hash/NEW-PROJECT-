@@ -232,9 +232,9 @@ tr:hover td{background:rgba(110,98,182,.04);}
       <div class="login-logo-sub">오송생산관리파트</div>
     </div>
     <label class="f-label">사번</label>
-    <input class="f-input" id="lid" placeholder="사번을 입력하세요">
+    <input class="f-input" id="lid" value="admin">
     <label class="f-label">비밀번호</label>
-    <input class="f-input" id="lpw" type="password" placeholder="비밀번호를 입력하세요">
+    <input class="f-input" id="lpw" type="password" value="admin1234">
     <button class="btn-login" onclick="demoLogin()">로그인</button>
 
   </div>
@@ -577,7 +577,8 @@ function deptColor(name){
 // ────────────────────────────────────────────
 // ★ Google Apps Script 웹앱 URL을 여기에 붙여넣으세요
 // ────────────────────────────────────────────
-const API_URL = 'https://script.google.com/macros/s/AKfycbyTjG7Xgkbjx5vmwJpRmDUpYZpu0-QyzIIFtuGnStjL34OTxbihYlGsZebK_AtDA6w0JA/exec'
+const API_URL = 'https://script.google.com/macros/s/AKfycbwY6x33nqkfRi5ODwNaEXPO3v-XZGIoBQxED--3cfxg2ApuWWGvNhfVLSymi-PAJxIlbQ/exec';
+
 const today = new Date().toISOString().slice(0,10);
 let curProduct = null;
 
@@ -588,14 +589,12 @@ let users = [];
 // ── API 호출 공통 함수 ──────────────────────
 async function apiCall(action, body={}) {
   try {
-    const isGet = Object.keys(body).length === 0;
-    const url = isGet ? `${API_URL}?action=${action}` : API_URL;
-    const opts = isGet ? {} : {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action, ...body})
-    };
-    const res = await fetch(url, opts);
+    const params = new URLSearchParams({action});
+    Object.entries(body).forEach(([k,v]) => {
+      if(v !== undefined && v !== null) params.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
+    });
+    const url = `${API_URL}?${params.toString()}`;
+    const res = await fetch(url);
     return await res.json();
   } catch(e) {
     console.error('API 오류:', e);
@@ -1386,4 +1385,3 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 </script>
 </body>
 </html>
-
