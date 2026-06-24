@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>신제품 발매현황 v5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --ac:#1565D8; --ac2:#0EA86B; --ac-dim:rgba(21,101,216,.1); --ac-light:#EAF2FE;
+  --sb-grad-start:#0D3A8C; --sb-grad-end:#0F9E6E;
+  --bg:#F5F7FA; --card:#FFFFFF;
+  --bd:#E2E6ED; --border:#E2E6ED;
+  --tx1:#15192B; --tx2:#454B5E; --tx3:#8A90A3; --tx4:#C2C6D2;
+  --ok:#0F9E6E; --ok-bg:rgba(15,158,110,.1);
+  --warn:#D14B3E; --warn-bg:rgba(209,75,62,.1);
+  --mid:#1565D8; --mid-bg:rgba(21,101,216,.1);
+  --duo:#C89640; --duo-text:#8A6520; --duo-dim:rgba(200,150,64,.14);
+  --shadow:rgba(13,40,80,.07);
+  --shadow2:rgba(13,40,80,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx1);font-size:14px;}
+
+/* ── APP SHELL ── */
+.app-shell{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:224px;flex-shrink:0;background:linear-gradient(160deg,var(--sb-grad-start) 0%,#0F6FA8 45%,var(--sb-grad-end) 100%);display:flex;flex-direction:column;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.sidebar.collapsed{width:0;}
+.sidebar.collapsed .sb-logo,
+.sidebar.collapsed .sb-nav,
+.sidebar.collapsed .sb-foot{opacity:0;transition:opacity .1s;}
+.sb-logo,.sb-nav,.sb-foot{transition:opacity .2s .05s;}
+/* topbar 내부 열기 버튼 */
+.topbar-toggle{width:36px;height:36px;border-radius:10px;border:none;background:var(--ac-light);color:var(--ac);font-size:18px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;}
+.topbar-toggle:hover{background:rgba(21,101,216,.18);}
+.sb-logo{padding:26px 22px 20px;border-bottom:1px solid rgba(255,255,255,.15);}
+.sb-logo-icon{width:38px;height:38px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px;box-shadow:0 4px 14px rgba(13,40,80,.25);}
+.sb-logo-title{font-size:14px;font-weight:800;color:#fff;line-height:1.35;}
+.sb-logo-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px;letter-spacing:.04em;}
+.sb-nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:16px 10px;}
+.sb-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.12em;padding:10px 8px 4px;margin-top:4px;}
+.sb-nav-btn{width:100%;padding:10px 13px;border:none;background:transparent;color:rgba(255,255,255,.72);font-family:inherit;font-size:13px;font-weight:500;text-align:left;cursor:pointer;border-radius:10px;transition:.15s;display:flex;align-items:center;gap:10px;}
+.sb-nav-btn svg{width:16px;height:16px;flex-shrink:0;opacity:.65;transition:.15s;}
+.sb-nav-btn:hover{background:rgba(255,255,255,.14);color:#fff;}
+.sb-nav-btn:hover svg{opacity:1;}
+.sb-nav-btn.active{background:rgba(255,255,255,.92);color:#0D3A8C;font-weight:700;border:1px solid rgba(255,255,255,.5);box-shadow:0 4px 14px rgba(13,40,80,.18);}
+.sb-nav-btn.active svg{opacity:1;color:#0F9E6E;}
+.sb-foot{padding:14px 12px 18px;border-top:1px solid rgba(255,255,255,.15);}
+.sb-foot-info{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sb-foot-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.sb-foot-name{font-size:13px;font-weight:700;color:#fff;}
+.sb-foot-id{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px;}
+.sb-foot-btn{width:100%;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);font-size:12px;font-family:inherit;cursor:pointer;transition:.15s;}
+.sb-foot-btn:hover{background:rgba(255,255,255,.18);color:#fff;}
+
+/* ── APP MAIN ── */
+.app-main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);}
+.main-topbar{padding:26px 28px 4px;display:flex;align-items:center;justify-content:space-between;}
+.main-topbar-title{font-size:22px;font-weight:800;color:var(--tx1);}
+.main-topbar-sub{font-size:13px;color:var(--tx3);margin-top:3px;}
+
+/* KPI */
+.kpi-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1.6fr;gap:12px;padding:14px 28px 10px;}
+.stat-simple{background:var(--card);border-radius:16px;padding:16px 18px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);transition:.2s;}
+.stat-simple:hover{box-shadow:0 4px 20px var(--shadow2);transform:translateY(-1px);}
+.stat-simple-label{font-size:11.5px;font-weight:700;color:var(--tx3);letter-spacing:.02em;margin-bottom:8px;}
+.stat-simple-num{font-size:24px;font-weight:800;color:var(--tx1);line-height:1;}
+.stat-simple-unit{font-size:12px;color:var(--tx3);font-weight:600;margin-left:3px;}
+.stat-simple-sub{font-size:12px;color:var(--tx3);margin-top:8px;font-weight:600;}
+.stat-simple-wide{display:flex;flex-direction:column;justify-content:space-between;}
+.stat-simple-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.stat-pill{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;}
+
+/* 인사이트 요약 */
+.insight-card{background:linear-gradient(135deg,rgba(21,101,216,.06),rgba(15,158,110,.06));border:1px solid var(--bd);border-radius:16px;padding:18px 22px;margin-top:0;}
+.insight-title{font-size:13px;font-weight:800;color:var(--tx2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.insight-body{font-size:13.5px;line-height:1.75;color:var(--tx1);}
+.insight-body b{color:var(--ac);font-weight:800;}
+.insight-body .warn-text{color:var(--warn);font-weight:800;}
+
+/* 메인 */
+.main{padding:0 28px 28px;display:flex;flex-direction:column;gap:12px;}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 28px 28px;align-items:start;}
+.section-head{display:flex;align-items:center;justify-content:space-between;padding:8px 28px;}
+.section-title{font-size:13px;font-weight:700;color:var(--tx2);}
+.btn-add{padding:8px 16px;border-radius:10px;font-size:12px;font-family:inherit;font-weight:700;cursor:pointer;border:none;color:#fff;background:var(--ac);box-shadow:0 2px 8px rgba(40,37,74,.2);transition:.15s;}
+.btn-add:hover{background:#0F52B0;box-shadow:0 4px 14px rgba(13,40,80,.28);}
+.btn-back{background:var(--ac-light);border:1.5px solid rgba(110,98,182,.22);color:var(--ac);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:7px 16px;border-radius:10px;transition:.15s;}
+.btn-back:hover{background:rgba(110,98,182,.16);}
+
+/* 제품 카드 */
+.product-card{background:var(--card);border-radius:18px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);overflow:visible;transition:.2s;}
+.product-card:hover{box-shadow:0 6px 24px var(--shadow2);}
+.pc-head{padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);border-radius:18px 18px 0 0;overflow:visible;cursor:pointer;transition:.15s;}
+.pc-head:hover{background:var(--ac-light);}
+.pc-name{font-size:14px;font-weight:700;color:var(--tx1);}
+.pc-progress{height:3px;background:var(--bd);}
+.pc-progress-bar{height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2));}
+.pert-toggle{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;font-size:12px;font-weight:600;color:var(--tx3);cursor:pointer;border-top:1px solid var(--bd);user-select:none;transition:.15s;}
+.pert-toggle:hover{background:var(--ac-light);color:var(--ac);}
+.pert-toggle-arrow{font-size:10px;}
+
+/* 요약정보 팝오버 */
+.info-popover-wrap{position:relative;display:inline-block;}
+.pc-name-hover{cursor:default;border-bottom:2px dotted rgba(110,98,182,.35);}
+.info-popover{display:none;position:absolute;left:0;top:calc(100% + 6px);width:230px;background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 12px 32px var(--shadow2);padding:14px 16px;z-index:300;}
+.info-popover-arrow{position:absolute;top:-6px;left:16px;width:10px;height:10px;background:var(--card);border-left:1px solid var(--bd);border-top:1px solid var(--bd);transform:rotate(45deg);}
+.info-popover-wrap:hover .info-popover{display:block;}
+.ip-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);}
+.ip-row:last-child{border-bottom:none;}
+.ip-label{font-size:11px;color:var(--tx3);font-weight:500;}
+.ip-val{font-size:13px;font-weight:700;color:var(--tx1);}
+.ip-val small{font-size:10px;font-weight:400;color:var(--tx3);margin-left:2px;}
+
+/* 진행률 원형 */
+.pct-circle{flex-shrink:0;width:48px;height:48px;position:relative;}
+.pct-circle svg{width:48px;height:48px;}
+.pct-circle-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;line-height:1;}
+
+/* 간트 */
+.pc-gantt{padding:12px 18px 14px;}
+.gantt-row{display:flex;align-items:center;margin-bottom:7px;}
+.gantt-label{min-width:80px;font-size:12px;font-weight:600;color:var(--tx2);}
+.gantt-track{flex:1;background:var(--ac-light);border-radius:20px;height:26px;position:relative;}
+.gantt-bar{position:absolute;height:26px;border-radius:20px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+.gantt-bar:hover{filter:brightness(1.1);}
+.gantt-dates{min-width:145px;font-size:11px;color:var(--tx3);padding-left:10px;}
+.gantt-dates.od{color:var(--warn);font-weight:600;}
+
+/* 공장 퍼트 - 시작일~기한 막대 */
+.fg-wrap{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;}
+.fg-card{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;}
+.fg-card-title{font-size:12.5px;font-weight:800;color:var(--tx2);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.fg-card-empty{font-size:10.5px;font-weight:500;color:var(--tx4);background:var(--card);padding:1px 8px;border-radius:10px;}
+.fg-card-track{position:relative;}
+.fg-bar{position:absolute;height:19px;border-radius:6px;display:flex;align-items:center;padding:0 8px;cursor:pointer;box-shadow:0 1px 3px rgba(40,37,74,.10);transition:.15s;border:1px solid rgba(0,0,0,.04);}
+.fg-bar:hover{filter:brightness(0.96);z-index:3;transform:translateY(-1px);}
+.fg-bar-label{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;}
+.fg-bar-narrow{padding:0 !important;justify-content:center;}
+.fg-bar-label-outside{position:absolute;left:100%;margin-left:6px;color:var(--tx2);}
+.fg-bar-warn{font-size:10px;margin-left:4px;}
+
+/* 부서 할일 카드 */
+.dept-card{background:var(--card);border-radius:16px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);overflow:hidden;}
+.cell-input{width:100%;border:1px solid transparent;background:transparent;font-family:inherit;font-size:13px;color:var(--tx2);padding:6px 7px;border-radius:7px;transition:.12s;}
+.cell-input:hover{background:var(--bg);}
+.cell-input:focus{background:#fff;border-color:var(--ac);box-shadow:0 0 0 2px var(--ac-dim);outline:none;}
+.overdue-input{color:var(--warn) !important;font-weight:700;}
+.drag-handle{cursor:grab;color:var(--tx4);text-align:center;font-size:14px;user-select:none;}
+.dept-row.dragging{opacity:.35;}
+.dept-row td{vertical-align:middle;}
+.row-flash{animation:rowflash 1.2s ease;}
+@keyframes rowflash{0%{background:var(--ac-light);}100%{background:transparent;}}
+.dept-head{background:var(--ac-light);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:13px;border-bottom:1px solid var(--bd);}
+.dept-prog{display:flex;align-items:center;gap:8px;}
+.dept-mini-bar{width:70px;height:6px;background:var(--bd);border-radius:4px;overflow:hidden;}
+.dept-mini-fill{height:6px;background:var(--ok);border-radius:4px;}
+.progress-row{display:flex;align-items:center;gap:16px;padding:11px 14px;border-radius:10px;cursor:pointer;transition:.12s;}
+.progress-row:hover{background:var(--bg);}
+.progress-row+.progress-row{border-top:1px solid var(--bd);}
+.progress-track{flex:1;height:8px;background:var(--bg);border-radius:5px;overflow:hidden;min-width:60px;}
+.progress-fill{height:8px;border-radius:5px;transition:width .3s;}
+.dept-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:var(--ok-bg);color:var(--ok);}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:10px 14px;text-align:left;font-size:13px;}
+th{background:var(--ac-light);font-weight:700;color:var(--tx3);font-size:11px;border-bottom:1px solid var(--bd);letter-spacing:.03em;}
+td{border-bottom:1px solid rgba(237,233,254,.7);color:var(--tx2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(110,98,182,.04);}
+.overdue{color:var(--warn);font-weight:500;}
+.td-del{color:var(--tx4);cursor:pointer;font-size:13px;border:1px solid var(--bd);background:var(--card);padding:4px 8px;border-radius:6px;font-family:inherit;transition:.12s;}
+.td-del:hover{color:#fff;background:var(--warn);border-color:var(--warn);}
+.td-edit{color:var(--tx3);cursor:pointer;font-size:13px;border:1px solid var(--bd);background:var(--card);padding:4px 8px;border-radius:6px;font-family:inherit;margin-right:4px;transition:.12s;}
+.td-edit:hover{color:#fff;background:var(--ac);border-color:var(--ac);}
+.btn-row{display:flex;gap:4px;white-space:nowrap;align-items:center;}
+
+/* 서브탭 */
+.sub-tab-bar{display:flex;gap:3px;background:var(--bd);border-radius:10px;padding:3px;}
+.sub-tab-btn{padding:5px 16px;border:none;background:none;font-family:inherit;font-size:12px;font-weight:600;color:var(--tx3);cursor:pointer;border-radius:8px;transition:.15s;}
+.sub-tab-btn:hover{color:var(--ac);}
+.sub-tab-btn.active{background:var(--card);color:var(--ac);box-shadow:0 1px 6px var(--shadow);}
+
+/* 배지 */
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+
+/* 로그인 */
+#loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#0D3A8C 0%,#0F6FA8 45%,#0F9E6E 100%);}
+.login-card{background:#fff;border-radius:24px;padding:40px 44px;width:380px;box-shadow:0 20px 60px rgba(13,40,80,.18);border:1px solid var(--bd);}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo-icon{width:56px;height:56px;background:linear-gradient(135deg,#1565D8,#0F9E6E);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;box-shadow:0 8px 20px rgba(13,40,80,.25);}
+.login-logo-title{font-size:22px;font-weight:800;color:var(--tx1);}
+.login-logo-title span{color:var(--ac);}
+.login-logo-sub{font-size:12px;color:var(--tx3);margin-top:4px;}
+.f-label{font-size:12px;font-weight:700;color:var(--tx3);margin-bottom:6px;display:block;}
+.f-input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--bd);font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;background:#FAFAFF;color:var(--tx1);transition:.15s;}
+.f-input:focus{border-color:var(--ac);background:#fff;box-shadow:0 0 0 3px rgba(110,98,182,.1);}
+.btn-login{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#1565D8,#0F9E6E);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px;box-shadow:0 4px 16px rgba(13,40,80,.25);transition:.15s;}
+.btn-login:hover{background:linear-gradient(135deg,#0F52B0,#0D8A5F);box-shadow:0 6px 20px rgba(13,40,80,.32);}
+
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(30,10,60,.4);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border-radius:20px;padding:26px;width:440px;box-shadow:0 20px 60px var(--shadow2);border:1px solid var(--bd);}
+.modal-wide{width:600px;max-height:80vh;overflow-y:auto;}
+.cl-item{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.cl-item-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cl-item-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cl-item-title{font-size:13.5px;font-weight:800;color:var(--tx1);}
+.cl-item-sub{font-size:11.5px;color:var(--tx3);margin-left:30px;}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:20px;color:var(--tx1);}
+.m-label{font-size:12px;font-weight:700;color:var(--tx3);margin-bottom:5px;display:block;}
+.m-input,.m-select{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--bd);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;background:#FAFAFF;color:var(--tx1);transition:.15s;}
+.m-input:focus,.m-select:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(110,98,182,.1);}
+.m-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.m-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;}
+.btn-cancel{padding:8px 20px;border-radius:9px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx2);font-family:inherit;font-size:13px;cursor:pointer;}
+.btn-ok{padding:8px 20px;border-radius:9px;border:none;background:var(--ac);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(40,37,74,.2);}
+
+#appView{display:none;}
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">💊</div>
+      <div class="login-logo-title">신제품 <span>발매현황</span></div>
+      <div class="login-logo-sub">오송생산관리파트</div>
+    </div>
+    <label class="f-label">사번</label>
+    <input class="f-input" id="lid" value="admin">
+    <label class="f-label">비밀번호</label>
+    <input class="f-input" id="lpw" type="password" value="admin1234">
+    <button class="btn-login" onclick="demoLogin()">로그인</button>
+    <p style="text-align:center;font-size:11px;color:var(--tx4);margin-top:14px">⚠ 디자인 미리보기 전용</p>
+  </div>
+</div>
+
+<!-- 앱 -->
+<div id="appView">
+  <div class="app-shell">
+
+    <!-- 사이드바 -->
+    <div class="sidebar" id="sidebar">
+      <div class="sb-logo" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="sb-logo-icon">💊</div>
+          <div class="sb-logo-title">신제품 발매현황</div>
+          <div class="sb-logo-sub">오송생산관리파트</div>
+        </div>
+        <button onclick="toggleSidebar()" title="사이드바 접기" style="background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.4);cursor:pointer;border-radius:8px;padding:6px;font-size:16px;line-height:1;margin-top:2px;flex-shrink:0;transition:.15s;" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">☰</button>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-section">메인</div>
+        <button class="sb-nav-btn active" id="snav-dashboard" onclick="showDashboard()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm8 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zM3 12a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zm8 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+          오송 전체현황
+        </button>
+        <button class="sb-nav-btn" id="snav-products" onclick="switchTab('products')">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+          신제품 목록
+        </button>
+        <button class="sb-nav-btn" id="snav-deptall" onclick="switchTab('deptall')">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+          부서별 할일
+        </button>
+        <button class="sb-nav-btn" id="snav-minutes" onclick="showMinutes()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5zm0 4h6v1H7V9zm0 3h4v1H7v-1z" clip-rule="evenodd"/></svg>
+          회의록 메일
+        </button>
+        <div class="sb-section">설정</div>
+        <button class="sb-nav-btn" id="snav-admin" onclick="showAdmin()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+          관리자 설정
+        </button>
+      </nav>
+      <div class="sb-foot">
+        <div class="sb-foot-info">
+          <div class="sb-foot-avatar">관</div>
+          <div>
+            <div class="sb-foot-name">관리자</div>
+            <div class="sb-foot-id">admin</div>
+          </div>
+        </div>
+        <button class="sb-foot-btn" onclick="doLogout()">← 로그아웃</button>
+      </div>
+    </div>
+
+    <!-- 메인 -->
+    <div class="app-main">
+
+      <!-- 대시보드 -->
+      <div id="dashboardView">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="topbar-toggle" id="openSbBtn" onclick="toggleSidebar()" title="사이드바 열기" style="display:none">☰</button>
+            <div>
+              <div class="main-topbar-title">오송 전체현황</div>
+              <div class="main-topbar-sub">오송공장 신제품 개발라인</div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-bar" id="kpiBar"></div>
+        <div style="padding:10px 28px 0">
+          <div class="insight-card" id="insightCard"></div>
+        </div>
+        <div style="padding:16px 28px 28px">
+          <div class="dept-card" id="progressSummaryCard"></div>
+        </div>
+      </div>
+
+      <!-- 제품 목록 -->
+      <div id="productsView" style="display:none">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="topbar-toggle" onclick="toggleSidebar()" title="사이드바 열기" style="display:none" data-sb-open>☰</button>
+            <div>
+              <div class="main-topbar-title">신제품 목록</div>
+              <div class="main-topbar-sub">등록된 신제품 발매 현황</div>
+            </div>
+          </div>
+        </div>
+        <div class="section-head" style="padding-top:8px">
+          <div class="sub-tab-bar">
+            <button class="sub-tab-btn active" id="subtab-all" onclick="switchSubTab('all')">전체</button>
+            <button class="sub-tab-btn" id="subtab-self" onclick="switchSubTab('self')">자체개발</button>
+            <button class="sub-tab-btn" id="subtab-out" onclick="switchSubTab('out')">위탁개발</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="position:relative">
+              <input id="searchInput" class="m-input" placeholder="제품명 검색"
+                style="margin:0;padding:7px 12px 7px 30px;font-size:12px;width:200px"
+                oninput="curSearch=this.value;renderProducts()">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;color:var(--tx4)">🔍</span>
+            </div>
+            <button id="sortBtn" onclick="toggleSort()"
+              style="font-size:12px;padding:7px 14px;border:1.5px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer;font-family:inherit;white-space:nowrap;color:var(--tx2);font-weight:600">발매기한 정렬</button>
+            <button class="btn-add" onclick="openModal('addProductModal')">+ 제품 추가</button>
+          </div>
+        </div>
+        <div class="main-grid" id="productList"></div>
+      </div>
+
+      <!-- 전체 부서별 할일 -->
+      <div id="deptAllView" style="display:none">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="topbar-toggle" onclick="toggleSidebar()" title="사이드바 열기" style="display:none" data-sb-open>☰</button>
+            <div>
+              <div class="main-topbar-title">부서별 할일</div>
+              <div class="main-topbar-sub">부서별 진행 현황</div>
+            </div>
+          </div>
+          <button class="btn-add" onclick="openMailRangeModal(true)">✉ 미완료 메일 발송</button>
+        </div>
+        <div class="main" style="margin-top:8px" id="deptAllList"></div>
+      </div>
+
+      <!-- 회의록 메일 -->
+      <div id="minutesView" style="display:none">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="topbar-toggle" onclick="toggleSidebar()" title="사이드바 열기" style="display:none" data-sb-open>☰</button>
+            <div>
+              <div class="main-topbar-title">회의록 메일</div>
+              <div class="main-topbar-sub">오늘 미팅 논의사항을 정리해서 참석자에게 발송합니다</div>
+            </div>
+          </div>
+        </div>
+        <div class="main" style="margin-top:8px;max-width:760px">
+          <div class="dept-card" style="padding:18px 20px;margin-bottom:14px">
+            <div class="m-row" style="margin-bottom:0">
+              <div><label class="m-label">작성자 소속</label><input class="m-input" id="minutesDept" placeholder="예) 공장관리팀" style="margin-bottom:0" onchange="saveMinutesAuthor()"></div>
+              <div><label class="m-label">작성자 이름</label><input class="m-input" id="minutesAuthor" placeholder="예) 우태양" style="margin-bottom:0" onchange="saveMinutesAuthor()"></div>
+            </div>
+            <div style="font-size:11px;color:var(--tx4);margin-top:8px">한 번 입력하면 다음부터 자동으로 채워집니다.</div>
+          </div>
+          <div class="dept-card" style="padding:18px 20px;margin-bottom:14px">
+            <label class="m-label">회의 날짜</label>
+            <input class="m-input" id="minutesDate" type="date" style="margin-bottom:0;max-width:200px" onchange="renderMinutes()">
+          </div>
+
+          <div class="dept-card" style="padding:18px 20px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <label class="m-label" style="margin-bottom:0">회의록 메일 본문</label>
+              <button class="btn-back" style="font-size:11.5px;padding:5px 10px" onclick="fillMinutesTemplate()">📄 회의록 양식(메일) 불러오기</button>
+            </div>
+            <textarea class="m-input" id="minutesMemo" rows="16" style="resize:vertical;margin-bottom:0;font-family:inherit" placeholder="위 '회의록 양식(메일) 불러오기'를 누르면 인사말·전체현황·논의사항 자리가 채워집니다. [금일 논의(이슈)사항]에 오늘 나온 코멘트를 적어주세요."></textarea>
+          </div>
+
+          <div class="dept-card" style="padding:18px 20px;margin-bottom:14px">
+            <label class="m-label">참석자 이메일 (쉼표로 구분)</label>
+            <input class="m-input" id="minutesRecipients" placeholder="예) mkchoi@ckdpharm.com, syl@ckdpharm.com" style="margin-bottom:0">
+            <div style="font-size:11px;color:var(--tx4);margin-top:6px">관리자 설정에 등록된 부서 담당자 이메일을 빠르게 추가할 수도 있습니다.</div>
+            <div id="minutesQuickAdd" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"></div>
+          </div>
+
+          <button class="btn-login" style="background:linear-gradient(135deg,#1565D8,#0F9E6E)" onclick="sendMinutesMail()">✉ 회의록 메일 발송</button>
+        </div>
+      </div>
+
+      <!-- 상세 -->
+      <div id="detailView" style="display:none">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button class="topbar-toggle" onclick="toggleSidebar()" title="사이드바 열기" style="display:none" data-sb-open>☰</button>
+            <button class="btn-back" onclick="showProducts()">‹ 목록으로</button>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                <span class="main-topbar-title" id="detailName" style="font-size:18px"></span>
+                <span id="detailTypeBadge"></span>
+                <span id="detailStatusBadge"></span>
+              </div>
+              <span id="detailInfoChips"></span>
+            </div>
+          </div>
+          <button class="btn-add" onclick="openEditProductModal()">✏ 정보 수정</button>
+        </div>
+        <div class="main" style="margin-top:8px">
+          <div class="product-card" id="detailGantt"></div>
+          <div class="product-card" id="detailFactoryGantt" style="margin-top:14px"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:14px;flex-wrap:wrap;gap:8px">
+            <span style="font-size:15px;font-weight:800;color:var(--tx1)">👥 부서별 할일</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="btn-back" onclick="openChecklistModal()">📋 발매 체크리스트</button>
+              <button class="btn-back" onclick="openMailRangeModal()">✉ 미완료 메일 발송</button>
+              <button class="btn-add" onclick="openAddDeptModal()">+ 할일 추가</button>
+            </div>
+          </div>
+          <div id="deptTaskList"></div>
+        </div>
+      </div>
+
+      <!-- 관리자 -->
+      <div id="adminView" style="display:none">
+        <div class="main-topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="topbar-toggle" onclick="toggleSidebar()" title="사이드바 열기" style="display:none" data-sb-open>☰</button>
+            <div>
+              <div class="main-topbar-title">관리자 설정</div>
+              <div class="main-topbar-sub">사용자 및 부서 관리</div>
+            </div>
+          </div>
+        </div>
+        <div class="main" style="margin-top:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 8px">
+            <span style="font-size:14px;font-weight:800;color:var(--tx1)">👤 사용자 관리</span>
+            <button class="btn-add" onclick="openModal('addUserModal')">+ 사용자 추가</button>
+          </div>
+          <div class="dept-card">
+            <table><thead><tr><th>사번</th><th>이름</th><th>권한</th><th></th></tr></thead><tbody id="userTbody"></tbody></table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px">
+            <span style="font-size:14px;font-weight:800;color:var(--tx1)">🏢 부서 관리</span>
+            <button class="btn-add" onclick="openModal('addDeptNameModal')">+ 부서 추가</button>
+          </div>
+          <div class="dept-card">
+            <table><thead><tr><th>부서명</th><th>담당자</th><th>이메일</th><th></th></tr></thead><tbody id="deptNameTbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 모달들 -->
+<div class="modal-bg" id="addProductModal"><div class="modal">
+  <div class="modal-title">제품 추가</div>
+  <label class="m-label">신제품명 *</label><input class="m-input" id="mpName" placeholder="예: 리토바젯 10/80">
+  <div class="m-row"><div><label class="m-label">발매기한</label><input class="m-input" id="mpReleaseDate" type="date"></div><div><label class="m-label">수익군</label><input class="m-input" id="mpProfitGroup" placeholder="A, B, C"></div></div>
+  <div class="m-row"><div><label class="m-label">SF (금액기준)</label><input class="m-input" id="mpSfAmt" placeholder="1,200"></div><div><label class="m-label">SF (정기준)</label><input class="m-input" id="mpSfQty" placeholder="500"></div></div>
+  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="mpEstPrice" placeholder="850"></div><div><label class="m-label">제조단위</label><input class="m-input" id="mpMfgUnit" placeholder="정, 캡슐, mL"></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분 *</label><select class="m-select" id="mpType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option></select></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="정상">정상</option><option value="지연">지연</option></select></div></div>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addProductModal')">취소</button><button class="btn-ok" onclick="submitProduct()">추가</button></div>
+</div></div>
+
+<div class="modal-bg" id="editProductModal"><div class="modal">
+  <div class="modal-title">제품 정보 수정</div>
+  <label class="m-label">신제품명</label><input class="m-input" id="eprodName">
+  <div class="m-row"><div><label class="m-label">발매기한</label><input class="m-input" id="eprodReleaseDate" type="date"></div><div><label class="m-label">수익군</label><input class="m-input" id="eprodProfitGroup"></div></div>
+  <div class="m-row"><div><label class="m-label">SF (금액기준)</label><input class="m-input" id="eprodSfAmt"></div><div><label class="m-label">SF (정기준)</label><input class="m-input" id="eprodSfQty"></div></div>
+  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="eprodEstPrice"></div><div><label class="m-label">제조단위</label><input class="m-input" id="eprodMfgUnit"></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분</label><select class="m-select" id="eprodType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option></select></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="정상">정상</option><option value="지연">지연</option></select></div></div>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('editProductModal')">취소</button><button class="btn-ok" onclick="submitEditProduct()">저장</button></div>
+</div></div>
+
+<div class="modal-bg" id="addPertModal"><div class="modal">
+  <div class="modal-title">발매 일정 추가</div>
+  <label class="m-label">할일 *</label><input class="m-input" id="ppTask" placeholder="예: 시험생산, 의동, 안정성, 허가변경">
+  <div class="m-row"><div><label class="m-label">시작일</label><input class="m-input" id="ppStart" type="date"></div><div><label class="m-label">기한</label><input class="m-input" id="ppDue" type="date"></div></div>
+  <label class="m-label">세부설명</label><input class="m-input" id="ppDesc" placeholder="선택사항">
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addPertModal')">취소</button><button class="btn-ok" onclick="submitPert()">추가</button></div>
+</div></div>
+
+<div class="modal-bg" id="editPertModal"><div class="modal">
+  <div class="modal-title">발매 일정 수정</div>
+  <input type="hidden" id="epPi"><input type="hidden" id="epI">
+  <label class="m-label">할일 *</label><input class="m-input" id="epTask">
+  <div class="m-row"><div><label class="m-label">시작일</label><input class="m-input" id="epStart" type="date"></div><div><label class="m-label">기한</label><input class="m-input" id="epDue" type="date"></div></div>
+  <label class="m-label">세부설명</label><input class="m-input" id="epDesc">
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('editPertModal')">취소</button><button class="btn-ok" onclick="submitEditPert()">저장</button></div>
+</div></div>
+
+<div class="modal-bg" id="addDeptModal"><div class="modal">
+  <div class="modal-title">부서별 할일 추가</div>
+  <div class="m-row"><div><label class="m-label">부서 *</label><input class="m-input" id="dpDept" placeholder="예: QA, 생산팀" list="deptNameList"><datalist id="deptNameList"></datalist></div><div><label class="m-label">시작일</label><input class="m-input" id="dpStart" type="date"></div></div>
+  <label class="m-label">기한</label><input class="m-input" id="dpDue" type="date">
+  <label class="m-label">부서별 할일 *</label><input class="m-input" id="dpSub" placeholder="예: 원자재 시험 성적서 제출">
+  <label class="m-label">코멘트</label><textarea class="m-input" id="dpDesc" rows="3" style="resize:vertical" placeholder="선택사항"></textarea>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addDeptModal')">취소</button><button class="btn-ok" onclick="submitDept()">추가</button></div>
+</div></div>
+
+<div class="modal-bg" id="addDeptNameModal"><div class="modal">
+  <div class="modal-title">부서 추가</div>
+  <label class="m-label">부서명 *</label><input class="m-input" id="dnName" placeholder="예: 생산팀, QA, 허가팀">
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addDeptNameModal')">취소</button><button class="btn-ok" onclick="submitDeptName()">추가</button></div>
+</div></div>
+
+<div class="modal-bg" id="addUserModal"><div class="modal">
+  <div class="modal-title">사용자 추가</div>
+  <label class="m-label">사번 *</label><input class="m-input" id="uuId">
+  <label class="m-label">이름 *</label><input class="m-input" id="uuName">
+  <label class="m-label">비밀번호 *</label><input class="m-input" id="uuPw" type="password">
+  <label class="m-label">권한</label><select class="m-select" id="uuRole"><option value="일반">일반</option><option value="관리자">관리자</option></select>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addUserModal')">취소</button><button class="btn-ok" onclick="submitUser()">추가</button></div>
+</div></div>
+
+<div class="modal-bg" id="checklistModal"><div class="modal modal-wide">
+  <div class="modal-title">📋 신제품 발매 체크리스트<div style="font-size:11.5px;font-weight:500;color:var(--tx3);margin-top:4px">생산관리 초안 기준 · 신제품 진행 시 5개 부서가 반드시 점검</div></div>
+  <div id="checklistBody"></div>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('checklistModal')">닫기</button></div>
+</div></div>
+
+<div class="modal-bg" id="mailRangeModal"><div class="modal modal-wide">
+  <div class="modal-title">✉ 미완료 할일 메일 발송<div style="font-size:11.5px;font-weight:500;color:var(--tx3);margin-top:4px">기한 범위를 지정하면 해당 범위 내 미완료 건을 담당자별로 찾아드립니다 (건바이건 발송)</div></div>
+  <div class="m-row"><div><label class="m-label">기한 시작</label><input class="m-input" id="mailRangeFrom" type="date"></div><div><label class="m-label">기한 종료</label><input class="m-input" id="mailRangeTo" type="date"></div></div>
+  <button class="btn-add" onclick="searchMailTargets()" style="width:100%;margin:4px 0 14px">🔍 해당 범위 미완료 건 조회</button>
+  <div id="mailTargetList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto"></div>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModal('mailRangeModal')">닫기</button></div>
+</div></div>
+
+<script>
+const GANTT_COLORS=['#1565D8','#0F9E6E','#C89640','#5B80A8','#2A6494','#B05070','#226158'];
+// 신제품 발매 체크리스트 - 5개 고정 분류(task). 모든 부서별 할일은 이 5개 중 하나에 속한다.
+const CHECKLIST_TASKS=[
+  'QA 허가일정 관리',
+  'QC 기술이전(완제/원료)',
+  '제제기술 시험생산 및 PV 계획서',
+  'QM 공급업체평가',
+  '생산관리 발매일정 및 S/F 검토'
+];
+// 신제품 등록 시 분류별 초안 담당부서 1건씩 자동 생성 (생산관리가 초안 작성 → 부서별 미팅으로 세부 할일 누적)
+const STANDARD_DEPT_TASKS=[
+  {task:'QA 허가일정 관리',dept:'QA',sub:'허가일정 관리 초안'},
+  {task:'QC 기술이전(완제/원료)',dept:'QC',sub:'기술이전(완제/원료) 초안'},
+  {task:'제제기술 시험생산 및 PV 계획서',dept:'제제기술팀',sub:'시험생산 및 PV 계획서 초안'},
+  {task:'QM 공급업체평가',dept:'QM',sub:'공급업체평가 초안'},
+  {task:'생산관리 발매일정 및 S/F 검토',dept:'생산관리',sub:'발매일정 및 S/F 검토 초안'}
+];
+function makeStandardDept(){return STANDARD_DEPT_TASKS.map(t=>({...t,start:'',due:'',done:false,desc:''}));}
+function sortByChecklist(keys){return keys.slice().sort((a,b)=>{const ia=CHECKLIST_TASKS.indexOf(a),ib=CHECKLIST_TASKS.indexOf(b);if(ia===-1&&ib===-1)return a.localeCompare(b,'ko');if(ia===-1)return 1;if(ib===-1)return -1;return ia-ib;});}
+const DEPT_PASTELS=[
+  {bg:'#DCE8FB',tx:'#1A4FA0'},{bg:'#D7F2E8',tx:'#0F7A56'},{bg:'#FFF3B0',tx:'#8A7218'},
+  {bg:'#D7F2D2',tx:'#3E7A3A'},{bg:'#C9EDE6',tx:'#226158'},{bg:'#CDE7FB',tx:'#2A6494'},
+  {bg:'#E3E9FB',tx:'#3A4FA0'},{bg:'#D9F0E2',tx:'#1D7A52'},{bg:'#F6D5E8',tx:'#9C3E72'},
+  {bg:'#E3E6C8',tx:'#646B2E'}
+];
+function deptColor(name){
+  let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;
+  return DEPT_PASTELS[h%DEPT_PASTELS.length];
+}
+// ────────────────────────────────────────────
+// ★ Google Apps Script 웹앱 URL을 여기에 붙여넣으세요
+// ────────────────────────────────────────────
+const API_URL = 'https://script.google.com/macros/s/AKfycbyZXT2gp3e9YHIkV5BWLHHd2NWPfp3N_Nt8TufBB1LkIeZWkFd0FTCEsV3m5zq18WNOpw/exec';
+
+const today = new Date().toISOString().slice(0,10);
+let curProduct = null;
+
+// 데이터는 비워두고 로드 시 채워짐
+let products = [];
+let users = [];
+
+// ── API 호출 공통 함수 ──────────────────────
+async function apiCall(action, body={}) {
+  try {
+    const isGet = Object.keys(body).length === 0;
+    const url = isGet ? `${API_URL}?action=${action}` : API_URL;
+    const opts = isGet ? {} : {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action, ...body})
+    };
+    const res = await fetch(url, opts);
+    return await res.json();
+  } catch(e) {
+    console.error('API 오류:', e);
+    return {error: e.message};
+  }
+}
+
+// ── 로딩 오버레이 표시/숨기기 ───────────────
+function showLoading(msg='불러오는 중...') {
+  let el = document.getElementById('_loadingOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_loadingOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(13,40,80,.45);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)';
+    el.innerHTML = `<div style="background:#fff;border-radius:20px;padding:32px 40px;text-align:center;box-shadow:0 20px 60px rgba(13,40,80,.25)">
+      <div style="font-size:28px;margin-bottom:12px">⏳</div>
+      <div id="_loadingMsg" style="font-size:15px;font-weight:700;color:var(--tx1)">${msg}</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--tx3)">Google Sheets와 동기화 중입니다</div>
+    </div>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('_loadingMsg').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideLoading() {
+  const el = document.getElementById('_loadingOverlay');
+  if (el) el.style.display = 'none';
+}
+
+// ── 전체 데이터 로드 ─────────────────────────
+async function loadAllData() {
+  showLoading('데이터 불러오는 중...');
+  const data = await apiCall('getData');
+  if (data.error) {
+    hideLoading();
+    alert('데이터 로드 실패: ' + data.error + '\n\nAPI_URL이 올바른지 확인해주세요.');
+    return;
+  }
+  products = data.products || [];
+  users    = data.users    || [];
+  depts    = data.depts    || [];
+  // deptContacts: [{부서명, 담당자, 이메일}] → 객체로 변환
+  deptContacts = {};
+  (data.deptContacts || []).forEach(r => {
+    deptContacts[r['부서명']] = {manager: r['담당자']||'', email: r['이메일']||''};
+  });
+  hideLoading();
+  updateKPI();
+  updateDeptDatalist();
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const collapsed=sb.classList.toggle('collapsed');
+  document.querySelectorAll('[data-sb-open]').forEach(btn=>btn.style.display=collapsed?'flex':'none');
+  document.getElementById('openSbBtn').style.display=collapsed?'flex':'none';
+}
+// 현재 로그인한 사용자 정보
+let currentUser = null;
+
+async function demoLogin(){
+  const id = document.getElementById('lid').value.trim();
+  const pw = document.getElementById('lpw').value.trim();
+  if(!id || !pw){ alert('사번과 비밀번호를 입력해주세요.'); return; }
+
+  // 먼저 데이터 로드해서 사용자 목록 가져오기
+  document.getElementById('loginView').style.display='none';
+  document.getElementById('appView').style.display='block';
+  await loadAllData();
+
+  // 사용자 인증
+  const found = users.find(u => u['id'] === id || u['사번'] === id);
+  if(!found){
+    alert('등록되지 않은 사번입니다.\n관리자에게 계정 등록을 요청해주세요.');
+    doLogout(); return;
+  }
+  // 실제 운영 시엔 Apps Script에서 비밀번호 검증 권장
+  // 지금은 사번만 확인하는 방식
+  currentUser = {
+    id:   found['id']   || found['사번'] || id,
+    name: found['이름'] || found['name'] || '사용자',
+    role: found['역할'] || found['role'] || '일반'
+  };
+
+  // 사이드바 이름/사번 업데이트
+  document.querySelector('.sb-foot-name').textContent = currentUser.name;
+  document.querySelector('.sb-foot-id').textContent   = currentUser.id;
+  // 아바타 첫 글자
+  document.querySelector('.sb-foot-avatar').textContent = currentUser.name.slice(0,1);
+
+  showDashboard();
+}
+
+function doLogout(){
+  currentUser = null;
+  document.getElementById('loginView').style.display='flex';
+  document.getElementById('appView').style.display='none';
+}
+
+function setNavActive(key){
+  ['dashboard','products','deptall','admin','minutes'].forEach(k=>{const b=document.getElementById('snav-'+k);if(b)b.classList.toggle('active',k===key);});
+}
+function showView(id){
+  ['dashboardView','productsView','detailView','adminView','deptAllView','minutesView'].forEach(v=>document.getElementById(v).style.display=v===id?'block':'none');
+}
+function showDashboard(){setNavActive('dashboard');showView('dashboardView');updateKPI();}
+function showProducts(){
+  const isDept=document.getElementById('snav-deptall').classList.contains('active');
+  if(isDept){showView('deptAllView');renderDeptAll();}
+  else{setNavActive('products');showView('productsView');renderProducts();}
+}
+function showAdmin(){
+  setNavActive('admin');
+  showView('adminView');
+  // 관리자 권한 체크
+  if(!currentUser || currentUser.role !== '관리자'){
+    document.getElementById('adminView').innerHTML=`
+      <div class="main-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="topbar-toggle" onclick="toggleSidebar()" style="display:none" data-sb-open>☰</button>
+          <div>
+            <div class="main-topbar-title">관리자 설정</div>
+            <div class="main-topbar-sub">사용자 및 부서 관리</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center">
+        <div style="font-size:48px;margin-bottom:20px">🔒</div>
+        <div style="font-size:18px;font-weight:800;color:var(--tx1);margin-bottom:8px">접근 권한이 없습니다</div>
+        <div style="font-size:13px;color:var(--tx3);max-width:300px;line-height:1.7">
+          관리자 설정은 <b style="color:var(--ac)">관리자 계정</b>만 이용할 수 있습니다.<br>
+          접근이 필요하면 담당 관리자에게 권한 변경을 요청해주세요.
+        </div>
+        <button class="btn-back" onclick="showDashboard()" style="margin-top:24px">← 대시보드로 돌아가기</button>
+      </div>`;
+    return;
+  }
+  renderUsers();renderDepts();updateDeptDatalist();
+}
+let minutesAuthorInfo={dept:'',name:''};
+function showMinutes(){
+  setNavActive('minutes');showView('minutesView');
+  const dEl=document.getElementById('minutesDate');
+  if(!dEl.value)dEl.value=today;
+  try{
+    const saved=localStorage.getItem('minutesAuthorInfo');
+    if(saved)minutesAuthorInfo=JSON.parse(saved);
+  }catch(e){}
+  document.getElementById('minutesDept').value=minutesAuthorInfo.dept||'';
+  document.getElementById('minutesAuthor').value=minutesAuthorInfo.name||'';
+  renderMinutes();
+}
+function saveMinutesAuthor(){
+  minutesAuthorInfo={dept:document.getElementById('minutesDept').value.trim(),name:document.getElementById('minutesAuthor').value.trim()};
+  try{localStorage.setItem('minutesAuthorInfo',JSON.stringify(minutesAuthorInfo));}catch(e){}
+}
+function buildOverallSummaryText(){
+  const total=products.length;
+  if(!total)return '등록된 신제품이 없습니다.';
+  const 정상=products.filter(p=>p.status==='정상').length,지연=products.filter(p=>p.status==='지연').length;
+  const allDept=products.flatMap(p=>p.dept),dTotal=allDept.length,dDone=allDept.filter(d=>d.done).length;
+  const dOd=allDept.filter(d=>d.due&&d.due<today&&!d.done).length;
+  const dPct=dTotal?Math.round(dDone/dTotal*100):0;
+  const withRelease=products.filter(p=>p.releaseDate).map(p=>({p,dday:Math.round((new Date(p.releaseDate)-new Date(today))/86400000)})).sort((a,b)=>a.dday-b.dday);
+  const soonest=withRelease[0];
+  const lines=[];
+  lines.push(`- 전체 신제품 ${total}건 (정상 ${정상} / 지연 ${지연})`);
+  if(soonest){
+    const ddayTxt=soonest.dday<0?`D+${-soonest.dday} 지남`:`D-${soonest.dday}`;
+    lines.push(`- 가장 임박한 품목: ${soonest.p.name} (${ddayTxt})`);
+  }
+  lines.push(`- 부서별 할일 ${dTotal}건 중 ${dPct}% 완료 (${dDone}건 완료 / 기한초과 ${dOd}건)`);
+  const delayedNames=products.filter(p=>p.status==='지연').map(p=>p.name);
+  if(delayedNames.length)lines.push(`- 지연 품목: ${delayedNames.join(', ')} → 일정 회복 방안 논의 필요`);
+  return lines.join('\n');
+}
+function renderMinutes(){
+  const quickEl=document.getElementById('minutesQuickAdd');
+  quickEl.innerHTML=depts.map(d=>{
+    const c=deptContacts[d];
+    if(!c||!c.email)return'';
+    return `<button class="btn-back" style="font-size:11.5px;padding:5px 10px" onclick="addMinutesRecipient('${esc(c.email)}')">+ ${esc(d)} (${esc(c.manager||'')})</button>`;
+  }).join('');
+}
+function addMinutesRecipient(email){
+  const el=document.getElementById('minutesRecipients');
+  const cur=el.value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!cur.includes(email))cur.push(email);
+  el.value=cur.join(', ');
+}
+// ── 변경이력 로그 (메모리 + Sheets 저장) ──────
+// 형식: {date, productName, type:'추가'|'수정'|'완료'|'삭제', target:'할일'|'퍼트', content, by}
+let changeLog = [];
+
+function recordChange(productName, type, target, content) {
+  const entry = {
+    date: today,
+    productName,
+    type,   // 추가 / 수정 / 완료 / 삭제
+    target, // 할일 / 퍼트
+    content,
+    by: currentUser ? currentUser.name : '알수없음'
+  };
+  changeLog.push(entry);
+  // Sheets에도 비동기 저장 (실패해도 UI는 정상 동작)
+  apiCall('addLog', entry).catch(e => console.warn('로그 저장 실패:', e));
+}
+
+// 회의록 날짜에 해당하는 변경사항을 제품별로 묶어 텍스트 생성
+function buildDailyChangeText(targetDate) {
+  // 메모리에 없으면 Sheets에서 불러온 데이터 기반으로 재구성
+  // (날짜가 오늘이 아닌 경우를 위해 Sheets 쪽에서 불러옴)
+  const entries = changeLog.filter(e => e.date === targetDate);
+  if (!entries.length) return null;
+
+  // 제품별로 묶기
+  const byProduct = {};
+  entries.forEach(e => {
+    if (!byProduct[e.productName]) byProduct[e.productName] = [];
+    byProduct[e.productName].push(e);
+  });
+
+  const lines = [];
+  Object.entries(byProduct).forEach(([productName, items]) => {
+    lines.push(`▶ ${productName}`);
+    items.forEach(e => {
+      const typeEmoji = e.type==='추가'?'＋':e.type==='완료'?'✓':e.type==='삭제'?'✕':'✎';
+      lines.push(`  ${typeEmoji} [${e.type}] ${e.target}: ${e.content} (${e.by})`);
+    });
+  });
+  return lines.join('\n');
+}
+
+async function fillMinutesTemplate(){
+  const el=document.getElementById('minutesMemo');
+  if(el.value.trim()&&!confirm('작성 중인 내용이 있습니다. 양식으로 덮어쓸까요?'))return;
+  saveMinutesAuthor();
+  const dept=minutesAuthorInfo.dept||'(소속 입력)',name=minutesAuthorInfo.name||'(이름 입력)';
+  const targetDate = document.getElementById('minutesDate').value || today;
+
+  // 해당 날짜 변경이력 Sheets에서 조회
+  showLoading('변경이력 불러오는 중...');
+  const logRes = await apiCall('getLog', {date: targetDate});
+  hideLoading();
+
+  // 서버에서 받은 로그와 로컬 메모리 로그 합치기 (중복 제거)
+  const serverLogs = (logRes.logs || []);
+  const localLogs  = changeLog.filter(e => e.date === targetDate);
+  const allLogs    = [...serverLogs, ...localLogs];
+
+  // 제품별 묶기
+  const byProduct = {};
+  allLogs.forEach(e => {
+    const pname = e['제품명'] || e.productName || '미분류';
+    if (!byProduct[pname]) byProduct[pname] = [];
+    byProduct[pname].push(e);
+  });
+
+  let changeSection = '';
+  if (Object.keys(byProduct).length) {
+    const lines = [];
+    Object.entries(byProduct).forEach(([productName, items]) => {
+      lines.push(`▶ ${productName}`);
+      items.forEach(e => {
+        const type    = e['변경종류'] || e.type    || '';
+        const target  = e['대상']     || e.target  || '';
+        const content = e['내용']     || e.content || '';
+        const by      = e['작성자']   || e.by      || '';
+        const typeEmoji = type==='추가'?'＋':type==='완료'?'✓':type==='삭제'?'✕':'✎';
+        lines.push(`  ${typeEmoji} [${type}] ${target}: ${content}  (${by})`);
+      });
+    });
+    changeSection = lines.join('\n');
+  } else {
+    changeSection = `  (${targetDate}에 기록된 변경사항이 없습니다)`;
+  }
+
+  el.value =
+`안녕하세요
+${dept} ${name} 입니다
+
+금일 진행 된 티어2 회의록 공유 드립니다.
+
+[전체현황]
+${buildOverallSummaryText()}
+
+[${targetDate} 변경사항]
+${changeSection}
+
+[금일 논의(이슈)사항]
+- 
+
+감사합니다`;
+  el.focus();
+}
+function sendMinutesMail(){
+  const recipients=document.getElementById('minutesRecipients').value.trim();
+  if(!recipients){alert('참석자 이메일을 1명 이상 입력해주세요.');return;}
+  const body=document.getElementById('minutesMemo').value;
+  if(!body.trim()){alert('회의록 메일 본문이 비어있습니다. "회의록 양식(메일) 불러오기"를 눌러주세요.');return;}
+  saveMinutesAuthor();
+  const date=document.getElementById('minutesDate').value||today;
+  const subject=encodeURIComponent(`[회의록] ${date} 신제품 발매 티어2 회의 공유`);
+  window.location.href=`mailto:${recipients}?subject=${subject}&body=${encodeURIComponent(body)}`;
+}
+function switchTab(tab){setNavActive(tab);if(tab==='products'){showView('productsView');renderProducts();}else{showView('deptAllView');renderDeptAll();}}
+
+function renderDeptAll(){
+  const rows=[];products.forEach(p=>p.dept.forEach((d,i)=>rows.push({...d,_pi:products.indexOf(p),_i:i,productName:p.name})));
+  const el=document.getElementById('deptAllList');
+  if(!rows.length){el.innerHTML='<div style="color:var(--tx4);padding:20px">등록된 할일이 없습니다.</div>';return;}
+  const byDept={};
+  rows.forEach(r=>{const k=r.dept||'미지정';if(!byDept[k])byDept[k]=[];byDept[k].push(r);});
+  Object.values(byDept).forEach(arr=>arr.sort((a,b)=>(!a.due&&!b.due)?0:(!a.due?1:(!b.due?-1:a.due.localeCompare(b.due)))));
+  const sortedDepts=Object.keys(byDept).sort((a,b)=>a.localeCompare(b,'ko'));
+  const cg=`<colgroup><col style="width:130px"><col style="width:170px"><col><col style="width:95px"><col style="width:95px"><col style="width:48px"><col style="width:52px"></colgroup>`;
+  const th=`<thead><tr><th>신제품명</th><th>부서별 할일</th><th>코멘트</th><th>시작일</th><th>기한</th><th style="text-align:center">완료</th><th></th></tr></thead>`;
+  el.innerHTML=sortedDepts.map(dept=>{
+    const dR=byDept[dept],done=dR.filter(r=>r.done).length,total=dR.length,pct=total?Math.round(done/total*100):0;
+    const allDone=done===total&&total>0,hasOd=dR.some(r=>r.due&&r.due<today&&!r.done);
+    const ac=allDone?'var(--ok)':hasOd?'var(--warn)':'var(--ac)';
+    const bg=allDone?'var(--ok-bg)':hasOd?'var(--warn-bg)':'var(--ac-dim)';
+    const lbl=allDone?'완료':hasOd?'기한초과':'진행중';
+    const trs=dR.map(r=>{const od=r.due&&r.due<today&&!r.done;return `<tr style="${r.done?'opacity:.4':''}"><td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--ac-dim);color:var(--ac)">${esc(r.productName)}</span></td><td><input class="cell-input" value="${esc(r.sub)}" onchange="inlineDeptUpdate(${r._pi},${r._i},'sub',this.value)" style="${r.done?'text-decoration:line-through':''}"></td><td><input class="cell-input" value="${esc(r.desc||'')}" placeholder="코멘트 입력" onchange="inlineDeptUpdate(${r._pi},${r._i},'desc',this.value)" style="color:var(--tx3)"></td><td><input type="date" class="cell-input" value="${r.start||''}" onchange="inlineDeptUpdate(${r._pi},${r._i},'start',this.value)"></td><td><input type="date" class="cell-input ${od?'overdue-input':''}" value="${r.due||''}" onchange="inlineDeptUpdate(${r._pi},${r._i},'due',this.value)"></td><td style="text-align:center"><input type="checkbox" ${r.done?'checked':''} onchange="toggleDeptAll(${r._pi},${r._i},this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:var(--ac)"></td><td><button class="td-del" onclick="deleteDeptFromAll(${r._pi},${r._i})">🗑</button></td></tr>`;}).join('');
+    return `<div class="dept-card" style="margin-bottom:14px;border-left:4px solid ${ac}"><div class="dept-head" style="padding:14px 20px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:15px;font-weight:800">${esc(dept)}</span><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${bg};color:${ac}">${lbl}</span></div><div style="display:flex;align-items:center;gap:10px"><div class="dept-mini-bar" style="width:80px;height:5px"><div class="dept-mini-fill" style="width:${pct}%;background:${ac}"></div></div><span style="font-size:12px;font-weight:700;color:${ac}">${done}/${total}</span></div></div><table style="table-layout:fixed;width:100%">${cg}${th}<tbody>${trs}</tbody></table></div>`;
+  }).join('');
+}
+function toggleDeptAll(pi,i,c){products[pi].dept[i].done=c;products[pi].dept[i].updatedAt=today;renderDeptAll();updateKPI();}
+function deleteDeptFromAll(pi,i){if(!confirm('삭제할까요?'))return;products[pi].dept.splice(i,1);renderDeptAll();updateKPI();}
+
+function renderGantt(p,inDetail=false){
+  const pi=products.indexOf(p);
+  if(!p.pert.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">발매 일정이 없습니다.</div>`;
+  const dates=p.pert.flatMap(r=>[r.start,r.due]).filter(Boolean).sort();
+  const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
+  const pad=30*24*60*60*1000,rs=new Date(minD-pad),re=new Date(maxD+pad),span=re-rs;
+  function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(1)));}
+  let ax='';let d=new Date(rs);d.setDate(1);
+  while(d<=re){ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4)">${(d.getFullYear()%100)}.${d.getMonth()+1}월</span>`;d.setMonth(d.getMonth()+1);}
+  const bars=p.pert.map((r,i)=>{
+    const l=pct(r.start),w=Math.max(2,pct(r.due)-l),od=r.due<today;
+    const col=od?'#C4B5FD':GANTT_COLORS[i%GANTT_COLORS.length];
+    const dc=inDetail?`<input type="checkbox" ${r.done?'checked':''} onchange="togglePert(${pi},${i})" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--ac)">`:'';
+    const eb=inDetail?`<div class="btn-row" style="margin-left:auto;padding-left:8px;flex-shrink:0"><button class="td-edit" onclick="editPert(${pi},${i})">✏ 수정</button><button class="td-del" onclick="deletePert(${pi},${i})">🗑 삭제</button></div>`:'';
+    return `<div class="gantt-row" style="align-items:center;${r.done?'opacity:.5':''}"><div class="gantt-label" style="${r.done?'text-decoration:line-through;color:var(--tx4)':''}">${esc(r.task)}</div><div class="gantt-track"><div class="gantt-bar" style="left:${l}%;width:${w}%;background:${r.done?'var(--ac-dim)':col};${r.done?'color:var(--tx3);text-shadow:none':''}">${esc(r.task)}</div></div><div class="gantt-dates${od&&!r.done?' od':''}" style="min-width:160px;flex-shrink:0">${od&&!r.done?'⚠ ':''}'${r.start.slice(2,4)}.${r.start.slice(5,7)}.${r.start.slice(8,10)} ~ '${r.due.slice(2,4)}.${r.due.slice(5,7)}.${r.due.slice(8,10)}</div>${dc}${eb}</div>`;
+  }).join('');
+  return `<div class="pc-gantt"><div style="position:relative;height:18px;margin-left:80px;margin-bottom:6px">${ax}</div>${bars}</div>`;
+}
+function renderFactoryGantt(p,pi){
+  if(!p.dept.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">부서별 할일이 없습니다. 먼저 아래에서 할일을 추가해주세요.</div>`;
+  const withDates=p.dept.map((r,i)=>({...r,_i:i})).filter(r=>r.start&&r.due).sort((a,b)=>a.start.localeCompare(b.start));
+  const noDates=p.dept.length-withDates.length;
+  if(!withDates.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">시작일과 기한이 모두 입력된 부서별 할일이 없습니다. (${noDates}건 날짜미정)</div>`;
+  const dates=withDates.flatMap(r=>[r.start,r.due]).sort();
+  const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
+  const pad=4*24*60*60*1000,rs=new Date(minD.getTime()-pad),re=new Date(maxD.getTime()+pad),span=Math.max(re-rs,86400000);
+  function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(2)));}
+  let ax='';let d=new Date(rs);d.setDate(1);
+  while(d<=re){ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4)">${(d.getFullYear()%100)}.${d.getMonth()+1}월</span>`;d.setMonth(d.getMonth()+1);}
+  const todayLeft=pct(today);
+  const bars=withDates.map((r,si)=>{
+    const l=pct(r.start),w=Math.max(1.2,pct(r.due)-l);
+    const od=r.due<today&&!r.done;
+    const dc=deptColor(r.dept);
+    const bg=r.done?'#EDEDF5':od?'#FBDADA':dc.bg;
+    const txc=r.done?'#A6A6BC':od?'#A33A3A':dc.tx;
+    const top=4+si*24;
+    const label=`${esc(r.dept)} · ${esc(r.sub)}`;
+    const isNarrow=w<14; // 막대가 좁으면 라벨을 바깥으로
+    const labelHtml=isNarrow
+      ? `<span class="fg-bar-label fg-bar-label-outside">${label}</span>`
+      : `<span class="fg-bar-label" style="color:${txc}">${label}</span>`;
+    return `<div class="fg-bar ${isNarrow?'fg-bar-narrow':''}" style="left:${l}%;width:${w}%;top:${top}px;background:${bg};${isNarrow?'':`color:${txc};`}${r.done?'opacity:.65':''}" onclick="focusDeptRow(${r._i})" title="${esc(r.dept)} · ${esc(r.sub)} (${r.start}~${r.due})${r.done?' - 완료':od?' - 기한초과':''}">${labelHtml}${od?'<span class="fg-bar-warn">⚠</span>':''}</div>`;
+  }).join('');
+  const trackH=withDates.length*24+8;
+  return `<div class="fg-wrap"><div class="fg-card"><div style="position:relative;height:18px;margin-bottom:6px">${ax}</div><div class="fg-card-track" style="height:${trackH}px">${bars}${todayLeft>=0&&todayLeft<=100?`<div style="position:absolute;left:${todayLeft}%;top:0;bottom:0;width:2px;background:var(--ac);opacity:.45;z-index:1"></div>`:''}</div>${noDates?`<div style="margin-top:8px"><span class="fg-card-empty">날짜미정 ${noDates}건 (표 하단에서 입력하면 표시됩니다)</span></div>`:''}</div></div>`;
+}
+function focusDeptRow(idx){
+  const body=document.getElementById('deptRowsBody');
+  if(!body)return;
+  const row=body.children[idx];
+  if(!row)return;
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.classList.add('row-flash');
+  setTimeout(()=>row.classList.remove('row-flash'),1200);
+  const firstInput=row.querySelector('.cell-input');
+  if(firstInput)firstInput.focus();
+}
+function circlePct(pct,color,size=48){
+  const r=size/2-4,c=2*Math.PI*r,off=(c*(1-pct/100)).toFixed(1);
+  return `<div class="pct-circle" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="4"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c} ${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${size/2} ${size/2})"/></svg><div class="pct-circle-center" style="color:${color};font-size:${size<=48?'11':'12'}px">${pct}%</div></div>`;
+}
+
+let curSubTab='all',curSearch='',curSort='none';
+function toggleSort(){curSort=curSort==='none'?'asc':curSort==='asc'?'desc':'none';renderProducts();}
+function switchSubTab(tab){curSubTab=tab;document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('subtab-'+tab).classList.add('active');renderProducts();}
+
+function renderProducts(){
+  updateKPI();const el=document.getElementById('productList');
+  let filtered=curSubTab==='all'?products:curSubTab==='self'?products.filter(p=>p.type==='자체'):products.filter(p=>p.type==='위탁');
+  if(curSearch){const q=curSearch.toLowerCase();filtered=filtered.filter(p=>p.name.toLowerCase().includes(q));}
+  if(curSort!=='none'){filtered=[...filtered].sort((a,b)=>{const da=a.releaseDate||'9999',db=b.releaseDate||'9999';return curSort==='asc'?da.localeCompare(db):db.localeCompare(da);});}
+  const sb=document.getElementById('sortBtn');
+  if(sb)sb.textContent=curSort==='asc'?'발매기한 ↑':curSort==='desc'?'발매기한 ↓':'발매기한 정렬';
+  el.innerHTML=filtered.length===0
+    ?`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--tx4)">검색 결과가 없습니다.</div>`
+    :filtered.map(p=>{
+    const pi=products.indexOf(p);const {pct}=calcBigPct(p);
+    const pctColor=pct>=70?'var(--ok)':pct>=30?'var(--ac)':'var(--tx4)';
+    const typeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';
+    const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
+    const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';
+    const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+    const isExpanded=expandedPertCards.has(pi);
+    return `<div class="product-card" data-pi="${pi}"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.sfAmt||p.sfQty||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''} ${p.sfAmt?`<div class="ip-row"><span class="ip-label">SF (금액기준)</span><span class="ip-val">${esc(p.sfAmt)}<small>원</small></span></div>`:''} ${p.sfQty?`<div class="ip-row"><span class="ip-label">SF (정기준)</span><span class="ip-val">${esc(p.sfQty)}<small>정</small></span></div>`:''} ${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''} ${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${p.releaseDate}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
+  }).join('');
+}
+
+function showDetail(pi){
+  curProduct=pi;const p=products[pi];showView('detailView');
+  curDeptSort='none';
+  const sortSel=document.getElementById('deptSortSelect');if(sortSel)sortSel.value='none';
+  const hasInfo=p.profitGroup||p.sfAmt||p.sfQty||p.estPrice||p.mfgUnit;
+  const infoPopover=hasInfo?`<div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.sfAmt?`<div class="ip-row"><span class="ip-label">SF (금액기준)</span><span class="ip-val">${esc(p.sfAmt)}<small>원</small></span></div>`:''}${p.sfQty?`<div class="ip-row"><span class="ip-label">SF (정기준)</span><span class="ip-val">${esc(p.sfQty)}<small>정</small></span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div>`:'';
+  document.getElementById('detailName').innerHTML=hasInfo?`<div class="info-popover-wrap"><span style="border-bottom:2px dotted rgba(110,98,182,.35);cursor:default">${esc(p.name)}</span>${infoPopover}</div>`:esc(p.name);
+  document.getElementById('detailInfoChips').innerHTML='';
+  const typeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
+  const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+  document.getElementById('detailTypeBadge').innerHTML=`<span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span>`;
+  document.getElementById('detailStatusBadge').innerHTML=`<span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>`+(p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);margin-left:4px">📅 ${p.releaseDate}</span>`:'');
+  document.getElementById('detailGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">📊 발매 퍼트</span><button class="btn-add" onclick="openModal('addPertModal')">+ 일정 추가</button></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderGantt(p,true)}`;
+  document.getElementById('detailFactoryGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">🏭 오송 퍼트 <span style="font-size:11px;font-weight:500;color:var(--tx4);margin-left:4px">(부서별 할일 시작일~기한 기준)</span></span></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderFactoryGantt(p,pi)}`;
+  renderDeptTasks(pi);
+}
+let curDeptSort='none';
+function toggleDeptSort(field){
+  if(curDeptSort===`${field}_asc`)curDeptSort=`${field}_desc`;
+  else if(curDeptSort===`${field}_desc`)curDeptSort='none';
+  else curDeptSort=`${field}_asc`;
+  renderDeptTasks(curProduct);
+}
+function sortHeader(field,label){
+  const isAsc=curDeptSort===`${field}_asc`,isDesc=curDeptSort===`${field}_desc`;
+  const arrow=isAsc?'↑':isDesc?'↓':'↕';
+  const color=isAsc||isDesc?'var(--ac)':'var(--tx4)';
+  return `<span style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;user-select:none" onclick="toggleDeptSort('${field}')">${label}<span style="color:${color};font-weight:800">${arrow}</span></span>`;
+}
+function renderDeptTasks(pi){
+  const p=products[pi];
+  const fgEl=document.getElementById('detailFactoryGantt');
+  if(fgEl)fgEl.innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">🏭 오송 퍼트 <span style="font-size:11px;font-weight:500;color:var(--tx4);margin-left:4px">(부서별 할일 시작일~기한 기준)</span></span></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderFactoryGantt(p,pi)}`;
+  const el=document.getElementById('deptTaskList');
+  if(!p.dept.length){el.innerHTML='<div style="color:var(--tx4);font-size:12px;padding:8px 0">부서별 할일이 없습니다.</div>';return;}
+  const done=p.dept.filter(r=>r.done).length,total=p.dept.length,pct=total?Math.round(done/total*100):0;
+  const hasOd=p.dept.some(r=>r.due&&r.due<today&&!r.done);
+  const ac=done===total?'var(--ok)':hasOd?'var(--warn)':'var(--ac)';
+  const bg=done===total?'var(--ok-bg)':hasOd?'var(--warn-bg)':'var(--ac-dim)';
+  const deptOptsFor=(cur)=>depts.map(d=>`<option value="${esc(d)}" ${d===cur?'selected':''}>${esc(d)}</option>`).join('');
+  let indexed=p.dept.map((r,i)=>({...r,_i:i}));
+  const dragEnabled=curDeptSort==='none';
+  if(curDeptSort!=='none'){
+    const [field,dir]=curDeptSort.split('_');
+    indexed=indexed.slice().sort((a,b)=>{
+      const av=a[field]||(dir==='asc'?'9999-99-99':''),bv=b[field]||(dir==='asc'?'9999-99-99':'');
+      return dir==='asc'?av.localeCompare(bv):bv.localeCompare(av);
+    });
+  }
+  const rows=indexed.map((r,visualIdx)=>{
+    const i=r._i;
+    const od=r.due&&r.due<today&&!r.done;
+    const dragAttrs=dragEnabled?`draggable="true" ondragstart="deptDragStart(event,${i})" ondragover="deptDragOver(event)" ondrop="deptDrop(event,${pi},${i})" ondragend="deptDragEnd(event)"`:'';
+    return `<tr ${dragAttrs} data-idx="${i}" style="${r.done?'opacity:.45':''}" class="dept-row">
+      <td class="drag-handle" title="${dragEnabled?'드래그해서 순서 변경':'정렬 중에는 순서변경 불가'}" style="${dragEnabled?'':'opacity:.25'}">⠿</td>
+      <td><select class="cell-input" onchange="inlineDeptUpdate(${pi},${i},'dept',this.value)" style="font-weight:700">${deptOptsFor(r.dept)}</select></td>
+      <td><input class="cell-input" value="${esc(r.sub)}" onchange="inlineDeptUpdate(${pi},${i},'sub',this.value)" style="${r.done?'text-decoration:line-through':''}"></td>
+      <td><input class="cell-input" value="${esc(r.desc||'')}" placeholder="코멘트 입력" onchange="inlineDeptUpdate(${pi},${i},'desc',this.value)" style="color:var(--tx3)"></td>
+      <td><input type="date" class="cell-input" value="${r.start||''}" onchange="inlineDeptUpdate(${pi},${i},'start',this.value)"></td>
+      <td><input type="date" class="cell-input ${od?'overdue-input':''}" value="${r.due||''}" onchange="inlineDeptUpdate(${pi},${i},'due',this.value)"></td>
+      <td style="text-align:center"><input type="checkbox" ${r.done?'checked':''} onchange="toggleDept(${pi},${i},this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:var(--ac)"></td>
+      <td><button class="td-del" onclick="deleteDept(${pi},${i})">🗑</button></td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`
+  <div class="dept-card">
+    <div class="dept-head">
+      <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px;font-weight:800;color:var(--tx1)">전체 할일</span><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${bg};color:${ac}">${pct}%</span></div>
+      <div class="dept-prog"><div class="dept-mini-bar" style="width:90px"><div class="dept-mini-fill" style="width:${pct}%;background:${ac}"></div></div><span class="dept-badge" style="color:${ac};background:${bg}">${done}/${total}</span></div>
+    </div>
+    <table style="table-layout:fixed;width:100%">
+      <colgroup><col style="width:26px"><col style="width:140px"><col style="width:220px"><col><col style="width:118px"><col style="width:118px"><col style="width:54px"><col style="width:40px"></colgroup>
+      <thead><tr><th></th><th>부서</th><th>부서별 할일</th><th>코멘트</th><th>${sortHeader('start','시작일')}</th><th>${sortHeader('due','기한')}</th><th style="text-align:center">완료</th><th></th></tr></thead>
+      <tbody id="deptRowsBody">${rows}</tbody>
+    </table>
+  </div>`;
+}
+let dragSrcIdx=null;
+function deptDragStart(e,idx){dragSrcIdx=idx;e.currentTarget.classList.add('dragging');}
+function deptDragOver(e){e.preventDefault();}
+function deptDragEnd(e){e.currentTarget.classList.remove('dragging');}
+function deptDrop(e,pi,targetIdx){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===targetIdx)return;
+  const arr=products[pi].dept;
+  const [moved]=arr.splice(dragSrcIdx,1);
+  arr.splice(targetIdx,0,moved);
+  dragSrcIdx=null;
+  renderDeptTasks(pi);
+}
+async function inlineDeptUpdate(pi,i,field,value){
+  products[pi].dept[i][field]=value;
+  products[pi].dept[i].updatedAt=today;
+  if(field==='start'||field==='due'){
+    const fgEl=document.getElementById('detailFactoryGantt');
+    if(fgEl)fgEl.innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">🏭 오송 퍼트 <span style="font-size:11px;font-weight:500;color:var(--tx4);margin-left:4px">(부서별 할일 시작일~기한 기준)</span></span></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderFactoryGantt(products[pi],pi)}`;
+  }
+  const task=products[pi].dept[i];
+  recordChange(products[pi].name, '수정', '할일', `[${task.dept}] ${task.sub} - ${field} 변경`);
+  await apiCall('updateTask',{taskId:task.id,[field]:value});
+}
+
+function openEditProductModal(){
+  const p=products[curProduct];
+  const map={eprodName:'name',eprodReleaseDate:'releaseDate',eprodProfitGroup:'profitGroup',eprodSfAmt:'sfAmt',eprodSfQty:'sfQty',eprodEstPrice:'estPrice',eprodMfgUnit:'mfgUnit'};
+  Object.entries(map).forEach(([id,key])=>document.getElementById(id).value=p[key]||'');
+  document.getElementById('eprodType').value=p.type||'자체';document.getElementById('eprodStatus').value=p.status||'정상';
+  openModal('editProductModal');
+}
+async function submitEditProduct(){
+  const p=products[curProduct],name=document.getElementById('eprodName').value.trim();if(!name)return;
+  p.name=name;['releaseDate','profitGroup','sfAmt','sfQty','estPrice','mfgUnit'].forEach((k,i)=>p[k]=document.getElementById(['eprodReleaseDate','eprodProfitGroup','eprodSfAmt','eprodSfQty','eprodEstPrice','eprodMfgUnit'][i]).value.trim());
+  p.type=document.getElementById('eprodType').value;p.status=document.getElementById('eprodStatus').value;
+  closeModal('editProductModal');
+  showLoading('제품 정보 저장 중...');
+  await apiCall('updateProduct', {productId: p.id, ...p});
+  await loadAllData();
+  showDetail(curProduct);
+}
+async function submitProduct(){
+  const name=document.getElementById('mpName').value.trim();if(!name)return;
+  const newProduct={name,releaseDate:document.getElementById('mpReleaseDate').value,profitGroup:document.getElementById('mpProfitGroup').value.trim(),sfAmt:document.getElementById('mpSfAmt').value.trim(),sfQty:document.getElementById('mpSfQty').value.trim(),estPrice:document.getElementById('mpEstPrice').value.trim(),mfgUnit:document.getElementById('mpMfgUnit').value.trim(),type:document.getElementById('mpType').value,status:document.getElementById('mpStatus').value,pert:[],dept:makeStandardDept()};
+  ['mpName','mpReleaseDate','mpProfitGroup','mpSfAmt','mpSfQty','mpEstPrice','mpMfgUnit'].forEach(id=>document.getElementById(id).value='');
+  closeModal('addProductModal');
+  showLoading('신제품 저장 중...');
+  const res = await apiCall('addProduct', newProduct);
+  if(res.error){hideLoading();alert('저장 실패: '+res.error);return;}
+  await loadAllData();
+  renderProducts();
+}
+async function submitPert(){
+  const task=document.getElementById('ppTask').value.trim();if(!task||curProduct===null)return;
+  const newPert={task,start:document.getElementById('ppStart').value,due:document.getElementById('ppDue').value,desc:document.getElementById('ppDesc').value.trim()};
+  ['ppTask','ppStart','ppDue','ppDesc'].forEach(id=>document.getElementById(id).value='');
+  closeModal('addPertModal');
+  showLoading('발매 일정 저장 중...');
+  await apiCall('addPert',{productId:products[curProduct].id,...newPert});
+  recordChange(products[curProduct].name, '추가', '퍼트', `${newPert.task} (${newPert.start||'시작일없음'} ~ ${newPert.due||'기한없음'})`);
+  await loadAllData();
+  if(document.getElementById('detailView').style.display!=='none')showDetail(curProduct);else renderProducts();
+}
+let expandedPertCards=new Set();
+function togglePertCollapse(btn){
+  const body=btn.nextElementSibling,arrow=btn.querySelector('.pert-toggle-arrow'),c=body.style.display==='none';
+  body.style.display=c?'':'none';arrow.textContent=c?'▲':'▼';
+  const pi=+btn.closest('.product-card').dataset.pi;
+  if(c)expandedPertCards.add(pi);else expandedPertCards.delete(pi);
+}
+async function togglePert(pi,i){
+  products[pi].pert[i].done=!products[pi].pert[i].done;
+  const r=products[pi].pert[i];
+  recordChange(products[pi].name, r.done?'완료':'수정', '퍼트', `${r.task} → ${r.done?'완료':'미완료'}`);
+  await apiCall('updatePert',{pertId:r.id,done:r.done});
+  showDetail(pi);
+}
+function editPert(pi,i){
+  const r=products[pi].pert[i];
+  ['epPi','epI','epTask','epStart','epDue','epDesc'].forEach((id,j)=>document.getElementById(id).value=[pi,i,r.task,r.start,r.due,r.desc][j]||'');
+  openModal('editPertModal');
+}
+async function submitEditPert(){
+  const pi=+document.getElementById('epPi').value,i=+document.getElementById('epI').value,r=products[pi].pert[i];
+  r.task=document.getElementById('epTask').value.trim()||r.task;
+  r.start=document.getElementById('epStart').value;
+  r.due=document.getElementById('epDue').value;
+  r.desc=document.getElementById('epDesc').value.trim();
+  closeModal('editPertModal');
+  showLoading('발매 일정 수정 중...');
+  await apiCall('updatePert',{pertId:r.id,task:r.task,start:r.start,due:r.due,desc:r.desc});
+  recordChange(products[pi].name, '수정', '퍼트', `${r.task} (${r.start||'시작일없음'} ~ ${r.due||'기한없음'})`);
+  await loadAllData();
+  showDetail(pi);
+}
+async function deletePert(pi,i){
+  if(!confirm('삭제할까요?'))return;
+  const pertId=products[pi].pert[i].id;
+  products[pi].pert.splice(i,1);
+  showDetail(pi);
+  await apiCall('deletePert',{pertId});
+}
+let mailModeAll=false;
+function openMailRangeModal(allMode){
+  mailModeAll=!!allMode;
+  document.getElementById('mailRangeFrom').value=today;
+  document.getElementById('mailRangeTo').value=today;
+  document.querySelector('#mailRangeModal .modal-title div').textContent=mailModeAll?'전체 신제품 대상 · 기한 범위 내 미완료 건을 부서별로 찾아드립니다 (건바이건 발송)':'기한 범위를 지정하면 해당 범위 내 미완료 건을 담당자별로 찾아드립니다 (건바이건 발송)';
+  document.getElementById('mailTargetList').innerHTML='<div style="font-size:12px;color:var(--tx4);text-align:center;padding:12px 0">기한 범위를 지정하고 조회해주세요</div>';
+  openModal('mailRangeModal');
+  searchMailTargets();
+}
+function searchMailTargets(){
+  let from=document.getElementById('mailRangeFrom').value,to=document.getElementById('mailRangeTo').value;
+  if(!from||!to){alert('기한 시작/종료를 모두 선택해주세요.');return;}
+  if(from>to){const t=from;from=to;to=t;} // 거꾸로 입력해도 자동 교정
+  let targets=[];
+  if(mailModeAll){
+    products.forEach((p)=>{
+      p.dept.forEach((d,i)=>{if(!d.done&&d.due&&d.due>=from&&d.due<=to)targets.push({...d,_i:i,productName:p.name});});
+    });
+  }else{
+    if(curProduct===null){alert('제품 상세화면에서 이용해주세요.');return;}
+    const p=products[curProduct];
+    targets=p.dept.map((d,i)=>({...d,_i:i,productName:p.name})).filter(d=>!d.done&&d.due&&d.due>=from&&d.due<=to);
+  }
+  targets.sort((a,b)=>a.due.localeCompare(b.due));
+  const el=document.getElementById('mailTargetList');
+  if(!targets.length){
+    const totalIncomplete=(mailModeAll?products.flatMap(p=>p.dept):products[curProduct].dept).filter(d=>!d.done&&d.due).length;
+    el.innerHTML=`<div style="font-size:12px;color:var(--tx4);text-align:center;padding:12px 0">해당 범위(${from} ~ ${to}) 내 미완료 건이 없습니다.<br>전체 미완료(기한있음) 건수: ${totalIncomplete}건</div>`;
+    return;
+  }
+  el.innerHTML=targets.map(t=>{
+    const c=deptContacts[t.dept]||{manager:'',email:''};
+    const hasEmail=!!c.email;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--bd);border-radius:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:700;color:var(--tx1)">${esc(t.dept)} <span style="color:var(--tx3);font-weight:500">· ${esc(c.manager||'담당자 미등록')}</span>${mailModeAll?`<span style="margin-left:6px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:8px;background:var(--ac-dim);color:var(--ac)">${esc(t.productName)}</span>`:''}</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px">${esc(t.sub)}</div>
+        <div style="font-size:11px;color:var(--warn);font-weight:700;margin-top:2px">기한 ${t.due}</div>
+      </div>
+      <button class="btn-add" style="${hasEmail?'':'opacity:.4;cursor:not-allowed'}" ${hasEmail?'':'disabled'} onclick="sendMailFor('${esc(t.dept)}','${esc(t.sub).replace(/'/g,"\\'")}','${t.due}','${esc(c.email)}','${esc(t.productName).replace(/'/g,"\\'")}')">발송</button>
+    </div>`;
+  }).join('');
+}
+function sendMailFor(dept,sub,due,email,productName){
+  if(!email){alert('이메일이 등록되지 않은 부서입니다. 관리자 설정 > 부서 관리에서 등록해주세요.');return;}
+  const subject=encodeURIComponent(`[발매일정] ${productName} - ${dept} 할일 기한 안내 (${due})`);
+  const body=encodeURIComponent(`${dept} 담당자님,\n\n[${productName}] 신제품 발매 일정 중 아래 할일이 기한 내 미완료 상태입니다.\n\n- 할일: ${sub}\n- 기한: ${due}\n\n확인 후 처리 부탁드립니다.\n\n감사합니다.`);
+  window.location.href=`mailto:${email}?subject=${subject}&body=${body}`;
+}
+function openChecklistModal(){
+  document.getElementById('checklistBody').innerHTML=STANDARD_DEPT_TASKS.map((t,idx)=>{
+    return `<div class="cl-item"><div class="cl-item-head"><span class="cl-item-num">${idx+1}</span><span class="cl-item-title">${esc(t.dept)} ${esc(t.sub.replace(' 초안',''))}</span></div></div>`;
+  }).join('')+`<div style="font-size:11.5px;color:var(--tx4);text-align:center;padding-top:4px">신제품 진행 시 위 5가지를 반드시 점검합니다. 세부 할일(시작일~기한)은 아래 "부서별 할일"에서 관리합니다</div>`;
+  openModal('checklistModal');
+}
+function openAddDeptModal(){openModal('addDeptModal');}
+async function submitDept(){
+  const dept=document.getElementById('dpDept').value.trim(),sub=document.getElementById('dpSub').value.trim();
+  if(!dept||!sub||curProduct===null)return;
+  const newTask={task:'',dept,sub,start:document.getElementById('dpStart').value,due:document.getElementById('dpDue').value,done:false,desc:document.getElementById('dpDesc').value.trim(),updatedAt:today,createdAt:today};
+  ['dpDept','dpSub','dpStart','dpDue','dpDesc'].forEach(id=>document.getElementById(id).value='');
+  closeModal('addDeptModal');
+  showLoading('할일 저장 중...');
+  await apiCall('addTask',{productId:products[curProduct].id,...newTask});
+  recordChange(products[curProduct].name, '추가', '할일', `[${newTask.dept}] ${newTask.sub}`);
+  await loadAllData();
+  showDetail(curProduct);
+}
+async function toggleDept(pi,i,c){
+  products[pi].dept[i].done=c;products[pi].dept[i].updatedAt=today;
+  renderDeptTasks(pi);updateKPI();
+  const task=products[pi].dept[i];
+  recordChange(products[pi].name, c?'완료':'수정', '할일', `[${task.dept}] ${task.sub} → ${c?'완료':'미완료'}`);
+  await apiCall('toggleDone',{taskId:task.id,done:c});
+}
+async function deleteDept(pi,i){
+  if(!confirm('삭제할까요?'))return;
+  const taskId=products[pi].dept[i].id;
+  products[pi].dept.splice(i,1);
+  renderDeptTasks(pi);updateKPI();
+  await apiCall('deleteTask',{taskId});
+}
+// depts / deptContacts 는 loadAllData()에서 Sheets 데이터로 채워집니다
+let depts = [];
+let deptContacts = {};
+function updateDeptDatalist(){document.getElementById('deptNameList').innerHTML=depts.map(d=>`<option value="${esc(d)}">`).join('');}
+function renderDepts(){
+  document.getElementById('deptNameTbody').innerHTML=depts.map((d,i)=>{
+    const c=deptContacts[d]||{manager:'',email:''};
+    return `<tr><td style="font-weight:700">${esc(d)}</td><td><input class="cell-input" value="${esc(c.manager)}" placeholder="담당자명" onchange="updateDeptContact('${d.replace(/'/g,"\\'")}','manager',this.value)"></td><td><input class="cell-input" value="${esc(c.email)}" placeholder="email@ckdpharm.com" onchange="updateDeptContact('${d.replace(/'/g,"\\'")}','email',this.value)"></td><td style="text-align:right"><button class="td-del" onclick="deleteDeptName(${i})">🗑 삭제</button></td></tr>`;
+  }).join('');
+}
+function updateDeptContact(dept,field,value){
+  if(!deptContacts[dept])deptContacts[dept]={manager:'',email:''};
+  deptContacts[dept][field]=value;
+}
+function submitDeptName(){const n=document.getElementById('dnName').value.trim();if(!n)return;if(depts.includes(n)){alert('이미 존재');return;}depts.push(n);document.getElementById('dnName').value='';closeModal('addDeptNameModal');renderDepts();updateDeptDatalist();}
+function deleteDeptName(i){if(!confirm(`'${depts[i]}' 삭제?`))return;depts.splice(i,1);renderDepts();updateDeptDatalist();}
+function renderUsers(){document.getElementById('userTbody').innerHTML=users.map((u,i)=>`<tr><td>${esc(u.id)}</td><td>${esc(u.name)}</td><td><span style="background:${u.role==='관리자'?'var(--ac-dim)':'var(--bg)'};color:${u.role==='관리자'?'var(--ac)':'var(--tx3)'};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${u.role}</span></td><td><button class="td-del" onclick="deleteUser(${i})">🗑</button></td></tr>`).join('');}
+function submitUser(){const id=document.getElementById('uuId').value.trim(),name=document.getElementById('uuName').value.trim();if(!id||!name)return;users.push({id,name,role:document.getElementById('uuRole').value});['uuId','uuName','uuPw'].forEach(i=>document.getElementById(i).value='');closeModal('addUserModal');renderUsers();}
+function deleteUser(i){if(!confirm('삭제?'))return;users.splice(i,1);renderUsers();}
+function calcBigPct(p){const total=p.dept.length;if(!total)return{pct:0,done:0,total:0};const done=p.dept.filter(d=>d.done).length;return{pct:Math.round(done/total*100),done,total};}
+
+function updateKPI(){
+  const total=products.length,정상=products.filter(p=>p.status==='정상').length,지연=products.filter(p=>p.status==='지연').length;
+  const 자체=products.filter(p=>p.type==='자체').length,위탁=products.filter(p=>p.type==='위탁').length;
+  const allDept=products.flatMap(p=>p.dept),dTotal=allDept.length,dDone=allDept.filter(d=>d.done).length;
+  const dProg=allDept.filter(d=>!d.done&&!(d.due&&d.due<today)).length,dOd=allDept.filter(d=>d.due&&d.due<today&&!d.done).length;
+  const withRelease=products.filter(p=>p.releaseDate).map(p=>({p,dday:Math.round((new Date(p.releaseDate)-new Date(today))/86400000)})).sort((a,b)=>a.dday-b.dday);
+  const soonest=withRelease[0];
+  const soonestLabel=soonest?(soonest.dday<0?`D+${-soonest.dday} 지남`:`D-${soonest.dday}`):'-';
+  const soonestColor=soonest?(soonest.dday<0?'var(--warn)':soonest.dday<=30?'var(--duo-text)':'var(--ac)'):'var(--tx4)';
+  const soonestName=soonest?soonest.p.name:'발매일 등록된 제품 없음';
+  document.getElementById('kpiBar').innerHTML=`
+    <div class="stat-simple"><div class="stat-simple-label">전체 신제품</div><div class="stat-simple-num">${total}<span class="stat-simple-unit">건</span></div><div class="stat-simple-sub"><span style="color:var(--ok)">●</span> 정상 ${정상} &nbsp; <span style="color:var(--warn)">●</span> 지연 ${지연}</div></div>
+    <div class="stat-simple"><div class="stat-simple-label">개발 구분</div><div class="stat-simple-num" style="font-size:19px">자체 ${자체} <span style="color:var(--tx4);font-weight:500">/</span> 위탁 ${위탁}</div><div class="stat-simple-sub">총 ${total}건 중 비중</div></div>
+    <div class="stat-simple"><div class="stat-simple-label">가장 임박한 발매</div><div class="stat-simple-num" style="font-size:17px;color:${soonestColor}">${soonestLabel}</div><div class="stat-simple-sub">${esc(soonestName)}</div></div>
+    <div class="stat-simple stat-simple-wide"><div class="stat-simple-label">부서별 할일 현황 (전체 ${dTotal}건)</div><div class="stat-simple-row"><span class="stat-pill" style="background:var(--ok-bg);color:var(--ok)">완료 ${dDone}</span><span class="stat-pill" style="background:var(--ac-dim);color:var(--ac)">진행중 ${dProg}</span><span class="stat-pill" style="background:var(--warn-bg);color:var(--warn)">기한초과 ${dOd}</span></div></div>`;
+  renderProgressSummary();
+  renderInsightSummary({total,정상,지연,자체,위탁,dTotal,dDone,dProg,dOd,soonest});
+}
+function renderInsightSummary({total,정상,지연,자체,위탁,dTotal,dDone,dProg,dOd,soonest}){
+  const el=document.getElementById('insightCard');
+  if(!el)return;
+  if(!total){el.innerHTML='<div class="insight-title">📝 통합 운영 진단</div><div class="insight-body" style="color:var(--tx4)">등록된 신제품이 없습니다. 신제품을 추가하면 현황 요약이 표시됩니다.</div>';return;}
+  const dPct=dTotal?Math.round(dDone/dTotal*100):0;
+  // 부서별 완료율 최저 부서 찾기
+  const deptMap={};
+  products.flatMap(p=>p.dept).forEach(d=>{deptMap[d.dept]=deptMap[d.dept]||{t:0,done:0};deptMap[d.dept].t++;if(d.done)deptMap[d.dept].done++;});
+  let worstDept=null,worstRate=101;
+  Object.entries(deptMap).forEach(([dept,v])=>{if(v.t>=2){const rate=v.done/v.t*100;if(rate<worstRate){worstRate=rate;worstDept=dept;}}});
+  // 지연 제품 이름들
+  const delayedNames=products.filter(p=>p.status==='지연').map(p=>p.name);
+  const sentences=[];
+  sentences.push(`현재 총 <b>${total}건</b>의 신제품이 진행 중이며, 이 중 <b>${정상}건</b>이 정상 진행, <span class="warn-text">${지연}건</span>이 지연 상태입니다. (자체개발 ${자체}건 · 위탁개발 ${위탁}건)`);
+  if(soonest){
+    const ddayTxt=soonest.dday<0?`이미 발매일이 <span class="warn-text">${-soonest.dday}일 지났습니다</span>`:`발매까지 <b>D-${soonest.dday}</b> 남았습니다`;
+    sentences.push(`가장 임박한 품목은 <b>${esc(soonest.p.name)}</b>이며, ${ddayTxt}.`);
+  }
+  sentences.push(`전체 부서별 할일 ${dTotal}건 중 <b>${dPct}%(${dDone}건)</b>가 완료되었고, <span class="warn-text">${dOd}건은 기한을 넘긴 상태</span>입니다.`);
+  if(worstDept&&worstRate<70){
+    sentences.push(`부서별로 보면 <b>${esc(worstDept)}</b>의 완료율이 ${Math.round(worstRate)}%로 가장 낮아 다음 미팅에서 우선 점검이 필요합니다.`);
+  }
+  if(delayedNames.length){
+    sentences.push(`지연 상태인 <b>${delayedNames.map(esc).join(', ')}</b>${delayedNames.length>1?'은':'은'} 일정 회복 방안을 우선 논의하는 것을 권장합니다.`);
+  }else if(dOd>0){
+    sentences.push(`전체 상태는 정상이지만 기한을 넘긴 할일이 있으니 해당 부서에 리마인드 메일 발송을 검토해보세요.`);
+  }else{
+    sentences.push(`현재 지연 또는 기한초과 항목이 없어 전반적으로 양호한 진행 상태입니다.`);
+  }
+  el.innerHTML=`<div class="insight-title">📝 통합 운영 진단</div><div class="insight-body">${sentences.join(' ')}</div>`;
+}
+function renderProgressSummary(){
+  const el=document.getElementById('progressSummaryCard');
+  if(!el)return;
+  const withDday=products.map(p=>{
+    const dday=p.releaseDate?Math.round((new Date(p.releaseDate)-new Date(today))/86400000):null;
+    const {pct,done,total}=calcBigPct(p);
+    return {p,dday,pct,done,total};
+  });
+  withDday.sort((a,b)=>{
+    if(a.dday===null&&b.dday===null)return 0;
+    if(a.dday===null)return 1;
+    if(b.dday===null)return -1;
+    return a.dday-b.dday;
+  });
+  const rows=withDday.map(({p,dday,pct,done,total})=>{
+    const pi=products.indexOf(p);
+    const barColor=p.status==='지연'?'var(--warn)':pct>=70?'var(--ok)':'var(--ac)';
+    const ddayLabel=dday===null?'발매일 미정':dday<0?`D+${-dday} 지남`:`D-${dday}`;
+    const ddayColor=dday===null?'var(--tx4)':dday<0?'var(--warn)':dday<=30?'var(--duo-text)':'var(--tx3)';
+    const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';
+    const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+    return `<div class="progress-row" onclick="showDetail(${pi})">
+      <div style="width:170px;flex-shrink:0;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--tx1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
+        <span class="badge" style="background:${stBg};color:${stClr};margin-top:3px;font-size:10px;padding:1px 7px">${p.status}</span>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0">
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${barColor};width:38px;text-align:right;flex-shrink:0">${pct}%</span>
+        <span style="font-size:11px;color:var(--tx3);flex-shrink:0;white-space:nowrap">${done}/${total}건</span>
+      </div>
+      <div style="width:90px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:800;color:${ddayColor}">${ddayLabel}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="dept-head"><span style="font-size:14px;font-weight:800;color:var(--tx1)">📌 진행중 과제 요약</span><span style="font-size:11.5px;color:var(--tx3)">발매일 임박 순</span></div><div style="padding:6px 4px">${rows||'<div style="padding:16px;color:var(--tx4);font-size:12px;text-align:center">등록된 신제품이 없습니다.</div>'}</div>`;
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
