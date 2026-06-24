@@ -236,7 +236,7 @@ tr:hover td{background:rgba(110,98,182,.04);}
     <label class="f-label">비밀번호</label>
     <input class="f-input" id="lpw" type="password" value="admin1234">
     <button class="btn-login" onclick="demoLogin()">로그인</button>
-    <p style="text-align:center;font-size:11px;color:var(--tx4);margin-top:14px">⚠ 디자인 미리보기 전용</p>
+
   </div>
 </div>
 
@@ -577,7 +577,7 @@ function deptColor(name){
 // ────────────────────────────────────────────
 // ★ Google Apps Script 웹앱 URL을 여기에 붙여넣으세요
 // ────────────────────────────────────────────
-const API_URL = 'https://script.google.com/macros/s/AKfycbyZXT2gp3e9YHIkV5BWLHHd2NWPfp3N_Nt8TufBB1LkIeZWkFd0FTCEsV3m5zq18WNOpw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzBX2EMfLj9hJyAjtqowSzEzDPNoxLkNDkz_D6sOxyZwNBuXUQDbwBmjk4QgyBwVov4nA/exec';
 
 const today = new Date().toISOString().slice(0,10);
 let curProduct = null;
@@ -666,31 +666,26 @@ async function demoLogin(){
   const pw = document.getElementById('lpw').value.trim();
   if(!id || !pw){ alert('사번과 비밀번호를 입력해주세요.'); return; }
 
-  // 먼저 데이터 로드해서 사용자 목록 가져오기
+  showLoading('로그인 중...');
+  const res = await apiCall('login', { id, pw });
+  hideLoading();
+
+  if(!res.ok){
+    alert(res.error || '사번 또는 비밀번호가 틀렸습니다.');
+    return;
+  }
+
+  currentUser = res.user;
+
   document.getElementById('loginView').style.display='none';
   document.getElementById('appView').style.display='block';
-  await loadAllData();
-
-  // 사용자 인증
-  const found = users.find(u => u['id'] === id || u['사번'] === id);
-  if(!found){
-    alert('등록되지 않은 사번입니다.\n관리자에게 계정 등록을 요청해주세요.');
-    doLogout(); return;
-  }
-  // 실제 운영 시엔 Apps Script에서 비밀번호 검증 권장
-  // 지금은 사번만 확인하는 방식
-  currentUser = {
-    id:   found['id']   || found['사번'] || id,
-    name: found['이름'] || found['name'] || '사용자',
-    role: found['역할'] || found['role'] || '일반'
-  };
 
   // 사이드바 이름/사번 업데이트
-  document.querySelector('.sb-foot-name').textContent = currentUser.name;
-  document.querySelector('.sb-foot-id').textContent   = currentUser.id;
-  // 아바타 첫 글자
+  document.querySelector('.sb-foot-name').textContent  = currentUser.name;
+  document.querySelector('.sb-foot-id').textContent    = currentUser.id;
   document.querySelector('.sb-foot-avatar').textContent = currentUser.name.slice(0,1);
 
+  await loadAllData();
   showDashboard();
 }
 
