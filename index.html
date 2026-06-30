@@ -963,7 +963,9 @@ function renderGantt(p,inDetail=false){
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(1)));}
   let ax=buildMonthAxis(rs,re,pct);
   const bars=p.pert.map((r,i)=>{
-    const l=pct(r.start),w=Math.min(Math.max(2,pct(r.due)-l),100-l),od=r.due<today;
+    const w0=Math.max(2,pct(r.due)-pct(r.start));
+    const l=Math.min(pct(r.start),100-w0),w=w0;
+    const od=r.due<today;
     const col=od?'#C4B5FD':GANTT_COLORS[i%GANTT_COLORS.length];
     const dc=inDetail?`<input type="checkbox" ${r.done?'checked':''} onchange="togglePert(${pi},${i})" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--ac)">`:'';
     const eb=inDetail?`<div class="btn-row" style="margin-left:auto;padding-left:8px;flex-shrink:0"><button class="td-edit" onclick="editPert(${pi},${i})">✏ 수정</button><button class="td-del" onclick="deletePert(${pi},${i})">🗑 삭제</button></div>`:'';
@@ -999,7 +1001,8 @@ function renderFactoryGantt(p,pi){
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(2)));}
   let ax=buildMonthAxis(rs,re,pct);
   const bars=withDates.map((r,si)=>{
-    const l=pct(r.start),w=Math.min(Math.max(1.2,pct(r.due)-l),100-l);
+    const w=Math.max(1.2,pct(r.due)-pct(r.start));
+    const l=Math.min(pct(r.start),100-w);
     const od=r.due<today&&!r.done;
     const dc=deptColor(r.dept);
     const bg=r.done?'#EDEDF5':od?'#FBDADA':dc.bg;
