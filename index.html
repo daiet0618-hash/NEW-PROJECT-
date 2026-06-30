@@ -959,14 +959,15 @@ function renderGantt(p,inDetail=false){
   if(!p.pert.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">발매 일정이 없습니다.</div>`;
   const dates=p.pert.flatMap(r=>[r.start,r.due]).filter(Boolean).sort();
   const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
-  const pad=30*24*60*60*1000,rs=new Date(minD-pad),re=new Date(maxD+pad),span=re-rs;
+  const rawSpan=Math.max(1,maxD-minD);
+  const pad=Math.max(30*24*60*60*1000,rawSpan*0.04),rs=new Date(minD-pad),re=new Date(maxD.getTime()+pad),span=re-rs;
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(1)));}
   let ax=buildMonthAxis(rs,re,pct);
   const bars=p.pert.map((r,i)=>{
     const l=pct(r.start),w=Math.min(Math.max(2,pct(r.due)-l),100-l);
     const od=r.due<today;
     const col=od?'#C4B5FD':GANTT_COLORS[i%GANTT_COLORS.length];
-    const dc=inDetail?`<input type="checkbox" ${r.done?'checked':''} onchange="togglePert(${pi},${i})" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--ac)">`:'';
+    const dc=inDetail?`<input type="checkbox" ${r.done?'checked':''} onchange="togglePert(${pi},${i})" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--ac);margin-left:14px">`:'';
     const eb=inDetail?`<div class="btn-row" style="margin-left:auto;padding-left:8px;flex-shrink:0"><button class="td-edit" onclick="editPert(${pi},${i})">✏ 수정</button><button class="td-del" onclick="deletePert(${pi},${i})">🗑 삭제</button></div>`:'';
     // 막대가 충분히 넓을 때만 안쪽에 텍스트 표시(좁으면 잘려보이므로 생략), 완료 항목은 어두운 글씨
     const showInnerText=Number(w)>=14;
@@ -978,15 +979,22 @@ function renderGantt(p,inDetail=false){
 }
 function buildMonthAxis(rs,re,pct){
   const totalMonths=Math.max(1,Math.round((re-rs)/(30*24*60*60*1000)));
-  let ax='';let d=new Date(rs);d.setDate(1);
+  let d=new Date(rs);d.setDate(1);
+  const months=[];
+  while(d<=re){months.push(new Date(d));d.setMonth(d.getMonth()+1);}
   const quarterlyOnly=totalMonths>6; // 기간이 길면 3,6,9,12월만 표시
-  while(d<=re){
-    const m=d.getMonth()+1;
-    if(!quarterlyOnly || m===3||m===6||m===9||m===12){
-      ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4);white-space:nowrap">${(d.getFullYear()%100)}.${m}월</span>`;
+  const lastIdx=months.length-1;
+  const labelStyle=(left)=>`position:absolute;left:${left}%;transform:translateX(-50%);font-size:10px;color:var(--tx4);white-space:nowrap`;
+  let ax='';
+  months.forEach((dm,i)=>{
+    const m=dm.getMonth()+1;
+    const isEnd=(i===0||i===lastIdx); // 시작월/끝월은 항상 표시
+    if(isEnd || !quarterlyOnly || m===3||m===6||m===9||m===12){
+      // 시작/끝 라벨은 잘리지 않게 좌우 정렬 보정
+      const align=i===0?'left:0%;transform:translateX(0)':i===lastIdx?`left:${pct(dm)}%;transform:translateX(-100%)`:`left:${pct(dm)}%;transform:translateX(-50%)`;
+      ax+=`<span style="position:absolute;${align};font-size:10px;color:${isEnd?'var(--tx2)':'var(--tx4)'};font-weight:${isEnd?'700':'400'};white-space:nowrap">${(dm.getFullYear()%100)}.${m}월</span>`;
     }
-    d.setMonth(d.getMonth()+1);
-  }
+  });
   return ax;
 }
 function renderFactoryGantt(p,pi){
@@ -996,7 +1004,8 @@ function renderFactoryGantt(p,pi){
   if(!withDates.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">시작일과 기한이 모두 입력된 부서별 할일이 없습니다. (${noDates}건 날짜미정)</div>`;
   const dates=withDates.flatMap(r=>[r.start,r.due]).sort();
   const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
-  const pad=4*24*60*60*1000,rs=new Date(minD.getTime()-pad),re=new Date(maxD.getTime()+pad),span=Math.max(re-rs,86400000);
+  const rawSpan2=Math.max(1,maxD.getTime()-minD.getTime());
+  const pad=Math.max(4*24*60*60*1000,rawSpan2*0.03),rs=new Date(minD.getTime()-pad),re=new Date(maxD.getTime()+pad),span=Math.max(re-rs,86400000);
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(2)));}
   let ax=buildMonthAxis(rs,re,pct);
   const bars=withDates.map((r,si)=>{
