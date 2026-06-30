@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>신제품 발매현황</title>
+<title>신제품 발매현황 v5</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -128,10 +128,10 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic 
 .pct-circle-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;line-height:1;}
 
 /* 간트 */
-.pc-gantt{padding:12px 18px 14px;}
-.gantt-row{display:flex;align-items:center;margin-bottom:7px;}
+.pc-gantt{padding:12px 18px 14px;overflow:hidden;}
+.gantt-row{display:flex;align-items:center;margin-bottom:7px;min-width:0;}
 .gantt-label{min-width:80px;font-size:12px;font-weight:600;color:var(--tx2);}
-.gantt-track{flex:1;background:var(--ac-light);border-radius:20px;height:26px;position:relative;}
+.gantt-track{flex:1;min-width:0;background:var(--ac-light);border-radius:20px;height:26px;position:relative;}
 .gantt-bar{position:absolute;height:26px;border-radius:20px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);}
 .gantt-bar:hover{filter:brightness(1.1);}
 .gantt-dates{min-width:145px;font-size:11px;color:var(--tx3);padding-left:10px;}
@@ -971,7 +971,7 @@ function renderGantt(p,inDetail=false){
     const showInnerText=Number(w)>=14;
     const barText=showInnerText?esc(r.task):'';
     const barTextStyle=r.done?'color:var(--tx3);text-shadow:none':'color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25)';
-    return `<div class="gantt-row" style="align-items:center;${r.done?'opacity:.5':''}"><div class="gantt-label" style="${r.done?'text-decoration:line-through;color:var(--tx4)':''}">${esc(r.task)}</div><div class="gantt-track"><div class="gantt-bar" title="${esc(r.task)}" style="left:${l}%;width:${w}%;background:${r.done?'var(--ac-dim)':col};${barTextStyle}">${barText}</div></div><div class="gantt-dates${od&&!r.done?' od':''}" style="min-width:160px;flex-shrink:0">${od&&!r.done?'⚠ ':''}'${r.start.slice(2,4)}.${r.start.slice(5,7)}.${r.start.slice(8,10)} ~ '${r.due.slice(2,4)}.${r.due.slice(5,7)}.${r.due.slice(8,10)}</div>${dc}${eb}</div>`;
+    return `<div class="gantt-row" style="align-items:center;${r.done?'opacity:.5':''}"><div class="gantt-label" style="${r.done?'text-decoration:line-through;color:var(--tx4)':''}">${esc(r.task)}</div><div class="gantt-track"><div class="gantt-bar" title="${esc(r.task)}" style="left:${l}%;width:${w}%;background:${r.done?'var(--ac-dim)':col};${barTextStyle}">${barText}</div></div><div class="gantt-dates${od&&!r.done?' od':''}" style="min-width:0;width:120px;flex-shrink:0;white-space:normal;text-align:right">${od&&!r.done?'⚠ ':''}'${r.start.slice(2,4)}.${r.start.slice(5,7)}.${r.start.slice(8,10)} ~ '${r.due.slice(2,4)}.${r.due.slice(5,7)}.${r.due.slice(8,10)}</div>${dc}${eb}</div>`;
   }).join('');
   return `<div class="pc-gantt"><div style="position:relative;height:18px;margin-left:80px;margin-bottom:6px">${ax}</div>${bars}</div>`;
 }
