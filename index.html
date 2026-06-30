@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>신제품 발매현황 v5</title>
+<title>신제품 발매현황</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -961,8 +961,7 @@ function renderGantt(p,inDetail=false){
   const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
   const pad=30*24*60*60*1000,rs=new Date(minD-pad),re=new Date(maxD+pad),span=re-rs;
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(1)));}
-  let ax='';let d=new Date(rs);d.setDate(1);
-  while(d<=re){ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4)">${(d.getFullYear()%100)}.${d.getMonth()+1}월</span>`;d.setMonth(d.getMonth()+1);}
+  let ax=buildMonthAxis(rs,re,pct);
   const bars=p.pert.map((r,i)=>{
     const l=pct(r.start),w=Math.max(2,pct(r.due)-l),od=r.due<today;
     const col=od?'#C4B5FD':GANTT_COLORS[i%GANTT_COLORS.length];
@@ -976,6 +975,21 @@ function renderGantt(p,inDetail=false){
   }).join('');
   return `<div class="pc-gantt"><div style="position:relative;height:18px;margin-left:80px;margin-bottom:6px">${ax}</div>${bars}</div>`;
 }
+function buildMonthAxis(rs,re,pct){
+  const totalMonths=Math.max(1,Math.round((re-rs)/(30*24*60*60*1000)));
+  // 라벨이 겹치지 않도록 구간 길이에 따라 표시 간격(개월)을 자동 조절 (최대 약 14개 라벨)
+  let step=1;
+  if(totalMonths>14)step=2;
+  if(totalMonths>28)step=3;
+  if(totalMonths>56)step=6;
+  if(totalMonths>110)step=12;
+  let ax='';let d=new Date(rs);d.setDate(1);let i=0;
+  while(d<=re){
+    if(i%step===0){ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4);white-space:nowrap">${(d.getFullYear()%100)}.${d.getMonth()+1}월</span>`;}
+    d.setMonth(d.getMonth()+1);i++;
+  }
+  return ax;
+}
 function renderFactoryGantt(p,pi){
   if(!p.dept.length) return `<div style="padding:16px 18px;color:var(--tx4);font-size:12px">부서별 할일이 없습니다. 먼저 아래에서 할일을 추가해주세요.</div>`;
   const withDates=p.dept.map((r,i)=>({...r,_i:i})).filter(r=>r.start&&r.due).sort((a,b)=>a.start.localeCompare(b.start));
@@ -985,9 +999,7 @@ function renderFactoryGantt(p,pi){
   const minD=new Date(dates[0]),maxD=new Date(dates[dates.length-1]);
   const pad=4*24*60*60*1000,rs=new Date(minD.getTime()-pad),re=new Date(maxD.getTime()+pad),span=Math.max(re-rs,86400000);
   function pct(d){return Math.max(0,Math.min(100,((new Date(d)-rs)/span*100).toFixed(2)));}
-  let ax='';let d=new Date(rs);d.setDate(1);
-  while(d<=re){ax+=`<span style="position:absolute;left:${pct(d)}%;transform:translateX(-50%);font-size:10px;color:var(--tx4)">${(d.getFullYear()%100)}.${d.getMonth()+1}월</span>`;d.setMonth(d.getMonth()+1);}
-  const todayLeft=pct(today);
+  let ax=buildMonthAxis(rs,re,pct);
   const bars=withDates.map((r,si)=>{
     const l=pct(r.start),w=Math.max(1.2,pct(r.due)-l);
     const od=r.due<today&&!r.done;
@@ -1360,8 +1372,7 @@ function updateKPI(){
   const dProg=allDept.filter(d=>!d.done&&!(d.due&&d.due<today)).length,dOd=allDept.filter(d=>d.due&&d.due<today&&!d.done).length;
   const withRelease=products.filter(p=>p.releaseDate).map(p=>({p,dday:calcDday(p)})).filter(x=>x.dday!==null).sort((a,b)=>a.dday-b.dday);
   const soonest=withRelease[0];
-  const soonestMonths=soonest?Math.round(Math.abs(soonest.dday)/30):0;
-  const soonestLabel=soonest?(soonest.dday<0?(soonestMonths<1?'기한 지남':`${soonestMonths}개월 지남`):(soonestMonths<1?'1개월 이내':`약 ${soonestMonths}개월 남음`)):'-';
+  const soonestLabel=soonest?ddayToMonthLabel(soonest.dday):'-';
   const soonestColor=soonest?(soonest.dday<0?'var(--warn)':soonest.dday<=30?'var(--duo-text)':'var(--ac)'):'var(--tx4)';
   const soonestName=soonest?soonest.p.name:'발매일 등록된 제품 없음';
   document.getElementById('kpiBar').innerHTML=`
@@ -1410,9 +1421,14 @@ function toggleSummaryGroup(g){
 }
 function ddayToMonthLabel(dday){
   if(dday===null||dday===undefined||isNaN(dday))return '발매일 미정';
-  const months=Math.round(Math.abs(dday)/30);
-  if(dday<0)return months<1?'기한 지남':`${months}개월 지남`;
-  return months<1?'1개월 이내':`약 ${months}개월 남음`;
+  const totalMonths=Math.round(Math.abs(dday)/30);
+  const yrs=Math.floor(totalMonths/12),mos=totalMonths%12;
+  let txt;
+  if(totalMonths<1) txt='1개월 이내';
+  else if(yrs>=1) txt=mos>0?`${yrs}년 ${mos}개월`:`${yrs}년`;
+  else txt=`${totalMonths}개월`;
+  if(dday<0)return totalMonths<1?'기한 지남':`${txt} 지남`;
+  return totalMonths<1?txt:`약 ${txt}`;
 }
 function calcDday(p){
   if(!p.releaseDate)return null;
@@ -1496,4 +1512,3 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 </script>
 </body>
 </html>
-
