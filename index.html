@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>신제품 발매현황</title>
+<title>신제품 발매현황 </title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -482,22 +482,20 @@ tr:hover td{background:rgba(110,98,182,.04);}
 <div class="modal-bg" id="addProductModal"><div class="modal">
   <div class="modal-title">제품 추가</div>
   <label class="m-label">신제품명 *</label><input class="m-input" id="mpName" placeholder="예: 리토바젯 10/80">
-  <div class="m-row"><div><label class="m-label">발매기한</label><input class="m-input" id="mpReleaseDate" type="date"></div><div><label class="m-label">수익군</label><input class="m-input" id="mpProfitGroup" placeholder="A, B, C"></div></div>
+  <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="mpReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="mpProfitGroup" placeholder="A, B, C"></div></div>
   <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="mpGroup" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
-  <div class="m-row"><div><label class="m-label">SF (금액기준)</label><input class="m-input" id="mpSfAmt" placeholder="1,200"></div><div><label class="m-label">SF (정기준)</label><input class="m-input" id="mpSfQty" placeholder="500"></div></div>
   <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="mpEstPrice" placeholder="850"></div><div><label class="m-label">제조단위</label><input class="m-input" id="mpMfgUnit" placeholder="정, 캡슐, mL"></div></div>
-  <div class="m-row"><div><label class="m-label">개발구분 *</label><select class="m-select" id="mpType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option></select></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="정상">정상</option><option value="지연">지연</option></select></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분 *</label><select class="m-select" id="mpType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option><option value="자체(제제개선)">자체(제제개선)</option><option value="자체(제조위탁)">자체(제조위탁)</option><option value="임상생산">임상생산</option><option value="기타">기타</option></select></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addProductModal')">취소</button><button class="btn-ok" onclick="submitProduct()">추가</button></div>
 </div></div>
 
 <div class="modal-bg" id="editProductModal"><div class="modal">
   <div class="modal-title">제품 정보 수정</div>
   <label class="m-label">신제품명</label><input class="m-input" id="eprodName">
-  <div class="m-row"><div><label class="m-label">발매기한</label><input class="m-input" id="eprodReleaseDate" type="date"></div><div><label class="m-label">수익군</label><input class="m-input" id="eprodProfitGroup"></div></div>
+  <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="eprodReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="eprodProfitGroup"></div></div>
   <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="eprodGroup" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
-  <div class="m-row"><div><label class="m-label">SF (금액기준)</label><input class="m-input" id="eprodSfAmt"></div><div><label class="m-label">SF (정기준)</label><input class="m-input" id="eprodSfQty"></div></div>
   <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="eprodEstPrice"></div><div><label class="m-label">제조단위</label><input class="m-input" id="eprodMfgUnit"></div></div>
-  <div class="m-row"><div><label class="m-label">개발구분</label><select class="m-select" id="eprodType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option></select></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="정상">정상</option><option value="지연">지연</option></select></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분</label><select class="m-select" id="eprodType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option><option value="자체(제제개선)">자체(제제개선)</option><option value="자체(제조위탁)">자체(제조위탁)</option><option value="임상생산">임상생산</option><option value="기타">기타</option></select></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('editProductModal')">취소</button><button class="btn-ok" onclick="submitEditProduct()">저장</button></div>
 </div></div>
 
@@ -783,14 +781,14 @@ function saveMinutesAuthor(){
 function buildOverallSummaryText(){
   const total=products.length;
   if(!total)return '등록된 신제품이 없습니다.';
-  const 정상=products.filter(p=>p.status==='정상').length,지연=products.filter(p=>p.status==='지연').length;
+  const 진행=products.filter(p=>p.status==='진행').length,지연=products.filter(p=>p.status==='지연').length,검토=products.filter(p=>p.status==='검토').length,보류=products.filter(p=>p.status==='보류').length;
   const allDept=products.flatMap(p=>p.dept),dTotal=allDept.length,dDone=allDept.filter(d=>d.done).length;
   const dOd=allDept.filter(d=>d.due&&d.due<today&&!d.done).length;
   const dPct=dTotal?Math.round(dDone/dTotal*100):0;
   const withRelease=products.filter(p=>p.releaseDate).map(p=>({p,dday:calcDday(p)})).filter(x=>x.dday!==null).sort((a,b)=>a.dday-b.dday);
   const soonest=withRelease[0];
   const lines=[];
-  lines.push(`- 전체 신제품 ${total}건 (정상 ${정상} / 지연 ${지연})`);
+  lines.push(`- 전체 신제품 ${total}건 (진행 ${진행} / 검토 ${검토} / 보류 ${보류} / 지연 ${지연})`);
   if(soonest){
     const ddayTxt=soonest.dday<0?`D+${-soonest.dday} 지남`:`D-${soonest.dday}`;
     lines.push(`- 가장 임박한 품목: ${soonest.p.name} (${ddayTxt})`);
@@ -970,13 +968,24 @@ function renderGantt(p,inDetail=false){
     const dc=inDetail?`<input type="checkbox" ${r.done?'checked':''} onchange="togglePert(${pi},${i})" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--ac);margin-left:14px">`:'';
     const eb=inDetail?`<div class="btn-row" style="margin-left:auto;padding-left:8px;flex-shrink:0"><button class="td-edit" onclick="editPert(${pi},${i})">✏ 수정</button><button class="td-del" onclick="deletePert(${pi},${i})">🗑 삭제</button></div>`:'';
     // 막대가 충분히 넓을 때만 안쪽에 텍스트 표시(좁으면 잘려보이므로 생략), 완료 항목은 어두운 글씨
-    const showInnerText=Number(w)>=14;
-    const barText=showInnerText?esc(r.task):'';
+    const barText='';
     const barTextStyle=r.done?'color:var(--tx3);text-shadow:none':'color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25)';
     return `<div class="gantt-row" style="align-items:center;${r.done?'opacity:.5':''}"><div class="gantt-label" style="${r.done?'text-decoration:line-through;color:var(--tx4)':''}">${esc(r.task)}</div><div class="gantt-track"><div class="gantt-bar" title="${esc(r.task)}" style="left:${l}%;width:${w}%;background:${r.done?'var(--ac-dim)':col};${barTextStyle}">${barText}</div></div><div class="gantt-dates${od&&!r.done?' od':''}" style="min-width:0;width:120px;flex-shrink:0;white-space:normal;text-align:right">${od&&!r.done?'⚠ ':''}'${r.start.slice(2,4)}.${r.start.slice(5,7)}.${r.start.slice(8,10)} ~ '${r.due.slice(2,4)}.${r.due.slice(5,7)}.${r.due.slice(8,10)}</div>${dc}${eb}</div>`;
   }).join('');
-  return `<div class="pc-gantt"><div style="position:relative;height:18px;margin-left:80px;margin-bottom:6px">${ax}</div>${bars}</div>`;
+  const axisRow=`<div class="gantt-row" style="margin-bottom:6px"><div class="gantt-label"></div><div class="gantt-track" style="background:transparent;height:18px;position:relative">${ax}</div><div style="width:120px;flex-shrink:0;visibility:hidden"></div>${inDetail?`<input type="checkbox" style="width:16px;height:16px;flex-shrink:0;margin-left:14px;visibility:hidden"><div class="btn-row" style="margin-left:auto;padding-left:8px;flex-shrink:0;visibility:hidden"><button class="td-edit">✏ 수정</button><button class="td-del">🗑 삭제</button></div>`:''}</div>`;
+  return `<div class="pc-gantt">${axisRow}${bars}</div>`;
 }
+function statusColors(st){
+  if(st==='진행')return{bg:'var(--ok-bg)',cl:'var(--ok)'};
+  if(st==='검토')return{bg:'#EFF6FF',cl:'#3B82F6'};
+  if(st==='보류')return{bg:'#F5F3FF',cl:'#7C3AED'};
+  if(st==='지연')return{bg:'var(--warn-bg)',cl:'var(--warn)'};
+  return{bg:'#F3F4F6',cl:'#6B7280'};
+}
+function toMonthVal(d){if(!d)return '';const m=String(d).match(/^(\d{4}-\d{2})/);return m?m[1]:d;}
+function fromMonthVal(v){if(!v)return '';return v.length===7?v+'-01':v;}
+function fmtYM(d){if(!d)return '';const m=String(d).match(/(\d{4})-(\d{2})/);return m?m[1]+'.'+m[2]+'월':d;}
+function fmtNum(v){const n=Number(String(v).replace(/,/g,''));return isNaN(n)?v:n.toLocaleString('ko-KR');}
 function buildMonthAxis(rs,re,pct){
   const totalMonths=Math.max(1,Math.round((re-rs)/(30*24*60*60*1000)));
   let d=new Date(rs);d.setDate(1);
@@ -1059,10 +1068,9 @@ function buildProductCard(p){
   const pctColor=pct>=70?'var(--ok)':pct>=30?'var(--ac)':'var(--tx4)';
   const typeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';
   const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
-  const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';
-  const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+  const {bg:stBg,cl:stClr}=statusColors(p.status);
   const isExpanded=expandedPertCards.has(pi);
-  return `<div class="product-card" data-pi="${pi}"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${p.releaseDate}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
+  return `<div class="product-card" data-pi="${pi}"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
 }
 
 function renderProducts(){
@@ -1085,7 +1093,7 @@ function renderProducts(){
   const groupNames=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko'));
   el.innerHTML=groupNames.map(g=>{
     const items=groups[g];
-    return `<div class="group-section"><div class="group-section-head"><span class="group-section-title">📦 ${esc(g)}군</span><span class="group-section-count">${items.length}건</span><span class="group-section-line"></span></div><div class="group-section-grid">${items.map(p=>buildProductCard(p)).join('')}</div></div>`;
+    return `<div class="group-section"><div class="group-section-head"><span class="group-section-title">📦 ${esc(g)}</span><span class="group-section-count">${items.length}건</span><span class="group-section-line"></span></div><div class="group-section-grid">${items.map(p=>buildProductCard(p)).join('')}</div></div>`;
   }).join('');
 }
 
@@ -1098,9 +1106,9 @@ function showDetail(pi){
   document.getElementById('detailName').innerHTML=hasInfo?`<div class="info-popover-wrap"><span style="border-bottom:2px dotted rgba(110,98,182,.35);cursor:default">${esc(p.name)}</span>${infoPopover}</div>`:esc(p.name);
   document.getElementById('detailInfoChips').innerHTML='';
   const typeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
-  const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+  const {bg:stBg,cl:stClr}=statusColors(p.status);
   document.getElementById('detailTypeBadge').innerHTML=`<span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span>`;
-  document.getElementById('detailStatusBadge').innerHTML=`<span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>`+(p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);margin-left:4px">📅 ${p.releaseDate}</span>`:'');
+  document.getElementById('detailStatusBadge').innerHTML=`<span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>`+(p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);margin-left:4px">📅 ${fmtYM(p.releaseDate)}</span>`:'');
   document.getElementById('detailGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">📊 발매 퍼트</span><button class="btn-add" onclick="openModal('addPertModal')">+ 일정 추가</button></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderGantt(p,true)}`;
   document.getElementById('detailFactoryGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">🏭 오송 퍼트 <span style="font-size:11px;font-weight:500;color:var(--tx4);margin-left:4px">(부서별 할일 시작일~기한 기준)</span></span></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderFactoryGantt(p,pi)}`;
   renderDeptTasks(pi);
@@ -1193,14 +1201,21 @@ async function inlineDeptUpdate(pi,i,field,value){
 
 function openEditProductModal(){
   const p=products[curProduct];
-  const map={eprodName:'name',eprodReleaseDate:'releaseDate',eprodProfitGroup:'profitGroup',eprodSfAmt:'sfAmt',eprodSfQty:'sfQty',eprodEstPrice:'estPrice',eprodMfgUnit:'mfgUnit',eprodGroup:'group'};
-  Object.entries(map).forEach(([id,key])=>document.getElementById(id).value=p[key]||'');
+  const map={eprodName:'name',eprodReleaseDate:'releaseDate',eprodProfitGroup:'profitGroup',eprodEstPrice:'estPrice',eprodMfgUnit:'mfgUnit',eprodGroup:'group'};
+  Object.entries(map).forEach(([id,key])=>{
+    const val=p[key]||'';
+    document.getElementById(id).value=(id==='eprodReleaseDate')?toMonthVal(val):val;
+  });
   document.getElementById('eprodType').value=p.type||'자체';document.getElementById('eprodStatus').value=p.status||'정상';
   openModal('editProductModal');
 }
 async function submitEditProduct(){
   const p=products[curProduct],name=document.getElementById('eprodName').value.trim();if(!name)return;
-  p.name=name;['releaseDate','profitGroup','sfAmt','sfQty','estPrice','mfgUnit','group'].forEach((k,i)=>p[k]=document.getElementById(['eprodReleaseDate','eprodProfitGroup','eprodSfAmt','eprodSfQty','eprodEstPrice','eprodMfgUnit','eprodGroup'][i]).value.trim());
+  p.name=name;['releaseDate','profitGroup','estPrice','mfgUnit','group'].forEach((k,i)=>{
+    let v=document.getElementById(['eprodReleaseDate','eprodProfitGroup','eprodEstPrice','eprodMfgUnit','eprodGroup'][i]).value.trim();
+    if(k==='releaseDate')v=fromMonthVal(v);
+    p[k]=v;
+  });
   p.type=document.getElementById('eprodType').value;p.status=document.getElementById('eprodStatus').value;
   closeModal('editProductModal');
   showLoading('제품 정보 저장 중...');
@@ -1210,8 +1225,8 @@ async function submitEditProduct(){
 }
 async function submitProduct(){
   const name=document.getElementById('mpName').value.trim();if(!name)return;
-  const newProduct={name,releaseDate:document.getElementById('mpReleaseDate').value,profitGroup:document.getElementById('mpProfitGroup').value.trim(),sfAmt:document.getElementById('mpSfAmt').value.trim(),sfQty:document.getElementById('mpSfQty').value.trim(),estPrice:document.getElementById('mpEstPrice').value.trim(),mfgUnit:document.getElementById('mpMfgUnit').value.trim(),group:document.getElementById('mpGroup').value.trim(),type:document.getElementById('mpType').value,status:document.getElementById('mpStatus').value,pert:[],dept:makeStandardDept()};
-  ['mpName','mpReleaseDate','mpProfitGroup','mpSfAmt','mpSfQty','mpEstPrice','mpMfgUnit','mpGroup'].forEach(id=>document.getElementById(id).value='');
+  const newProduct={name,releaseDate:fromMonthVal(document.getElementById('mpReleaseDate').value),profitGroup:document.getElementById('mpProfitGroup').value.trim(),estPrice:document.getElementById('mpEstPrice').value.trim(),mfgUnit:document.getElementById('mpMfgUnit').value.trim(),group:document.getElementById('mpGroup').value.trim(),type:document.getElementById('mpType').value,status:document.getElementById('mpStatus').value,pert:[],dept:makeStandardDept()};
+  ['mpName','mpReleaseDate','mpProfitGroup','mpEstPrice','mpMfgUnit','mpGroup'].forEach(id=>document.getElementById(id).value='');
   closeModal('addProductModal');
   showLoading('신제품 저장 중...');
   const res = await apiCall('addProduct', newProduct);
@@ -1374,7 +1389,7 @@ function deleteUser(i){if(!confirm('삭제?'))return;users.splice(i,1);renderUse
 function calcBigPct(p){const total=p.dept.length;if(!total)return{pct:0,done:0,total:0};const done=p.dept.filter(d=>d.done).length;return{pct:Math.round(done/total*100),done,total};}
 
 function updateKPI(){
-  const total=products.length,정상=products.filter(p=>p.status==='정상').length,지연=products.filter(p=>p.status==='지연').length;
+  const total=products.length,진행=products.filter(p=>p.status==='진행').length,지연=products.filter(p=>p.status==='지연').length,검토=products.filter(p=>p.status==='검토').length,보류=products.filter(p=>p.status==='보류').length;
   const 자체=products.filter(p=>p.type==='자체').length,위탁=products.filter(p=>p.type==='위탁').length;
   const allDept=products.flatMap(p=>p.dept),dTotal=allDept.length,dDone=allDept.filter(d=>d.done).length;
   const dProg=allDept.filter(d=>!d.done&&!(d.due&&d.due<today)).length,dOd=allDept.filter(d=>d.due&&d.due<today&&!d.done).length;
@@ -1384,7 +1399,7 @@ function updateKPI(){
   const soonestColor=soonest?(soonest.dday<0?'var(--warn)':soonest.dday<=30?'var(--duo-text)':'var(--ac)'):'var(--tx4)';
   const soonestName=soonest?soonest.p.name:'발매일 등록된 제품 없음';
   document.getElementById('kpiBar').innerHTML=`
-    <div class="stat-simple"><div class="stat-simple-label">전체 신제품</div><div class="stat-simple-num">${total}<span class="stat-simple-unit">건</span></div><div class="stat-simple-sub"><span style="color:var(--ok)">●</span> 정상 ${정상} &nbsp; <span style="color:var(--warn)">●</span> 지연 ${지연}</div></div>
+    <div class="stat-simple"><div class="stat-simple-label">전체 신제품</div><div class="stat-simple-num">${total}<span class="stat-simple-unit">건</span></div><div class="stat-simple-sub"><span style="color:var(--ok)">●</span> 진행 ${진행} &nbsp;<span style="color:#3B82F6">●</span> 검토 ${검토} &nbsp;<span style="color:#7C3AED">●</span> 보류 ${보류} &nbsp;<span style="color:var(--warn)">●</span> 지연 ${지연}</div></div>
     <div class="stat-simple"><div class="stat-simple-label">개발 구분</div><div class="stat-simple-num" style="font-size:19px">자체 ${자체} <span style="color:var(--tx4);font-weight:500">/</span> 위탁 ${위탁}</div><div class="stat-simple-sub">총 ${total}건 중 비중</div></div>
     <div class="stat-simple"><div class="stat-simple-label">가장 임박한 발매</div><div class="stat-simple-num" style="font-size:17px;color:${soonestColor}">${soonestLabel}</div><div class="stat-simple-sub">${esc(soonestName)}</div></div>
     <div class="stat-simple stat-simple-wide"><div class="stat-simple-label">부서별 할일 현황 (전체 ${dTotal}건)</div><div class="stat-simple-row"><span class="stat-pill" style="background:var(--ok-bg);color:var(--ok)">완료 ${dDone}</span><span class="stat-pill" style="background:var(--ac-dim);color:var(--ac)">진행중 ${dProg}</span><span class="stat-pill" style="background:var(--warn-bg);color:var(--warn)">기한초과 ${dOd}</span></div></div>`;
@@ -1449,8 +1464,7 @@ function buildSummaryRow(p,dday,pct,done,total){
   const barColor=p.status==='지연'?'var(--warn)':pct>=70?'var(--ok)':'var(--ac)';
   const ddayLabel=ddayToMonthLabel(dday);
   const ddayColor=dday===null?'var(--tx4)':dday<0?'var(--warn)':dday<=30?'var(--duo-text)':'var(--tx3)';
-  const stBg=p.status==='정상'?'var(--ok-bg)':'var(--warn-bg)';
-  const stClr=p.status==='정상'?'var(--ok)':'var(--warn)';
+  const {bg:stBg,cl:stClr}=statusColors(p.status);
   return `<div class="progress-row" onclick="showDetail(${pi})" style="align-items:flex-start">
     <div style="width:220px;flex-shrink:0;min-width:0">
       <div style="font-size:13px;font-weight:700;color:var(--tx1);white-space:normal;overflow-wrap:break-word;line-height:1.35">${esc(p.name)}</div>
@@ -1503,7 +1517,7 @@ function renderProgressSummary(){
     const gPct=gTotal?Math.round(gDone/gTotal*100):0;
     const headerRow=`<div onclick="toggleSummaryGroup('${esc(g).replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--ac-light)'" onmouseout="this.style.background='transparent'">
         <span style="font-size:11px;color:var(--tx3);width:14px;flex-shrink:0">${isOpen?'▼':'▶'}</span>
-        <span style="font-size:13px;font-weight:800;color:var(--ac);flex-shrink:0">📦 ${esc(g)}군</span>
+        <span style="font-size:13px;font-weight:800;color:var(--ac);flex-shrink:0">📦 ${esc(g)}</span>
         <span style="font-size:10.5px;font-weight:700;color:var(--tx3);background:var(--ac-light);padding:1px 8px;border-radius:20px;flex-shrink:0">${items.length}건</span>
         <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0">
           <div class="progress-track"><div class="progress-fill" style="width:${gPct}%;background:var(--ac)"></div></div>
