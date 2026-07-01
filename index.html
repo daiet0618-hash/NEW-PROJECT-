@@ -1509,6 +1509,21 @@ function buildSummaryRow(p,dday,pct,done,total){
     <div style="width:120px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:800;color:${ddayColor};margin-top:3px">${ddayLabel}</div>
   </div>`;
 }
+let summaryGroupOrder=[];
+let summaryDragSrc=null;
+function summaryDragStart(e,g){summaryDragSrc=g;e.currentTarget.style.opacity='.4';}
+function summaryDragEnd(e){e.currentTarget.style.opacity='1';document.querySelectorAll('.summary-group-row').forEach(r=>r.style.outline='');}
+function summaryDragOver(e,g){e.preventDefault();if(summaryDragSrc===g)return;document.querySelectorAll('.summary-group-row').forEach(r=>r.style.outline='');e.currentTarget.style.outline='2px dashed var(--ac)';}
+function summaryDrop(e,g){
+  e.preventDefault();e.currentTarget.style.outline='';
+  if(!summaryDragSrc||summaryDragSrc===g)return;
+  const fi=summaryGroupOrder.indexOf(summaryDragSrc),ti=summaryGroupOrder.indexOf(g);
+  if(fi<0||ti<0)return;
+  summaryGroupOrder.splice(fi,1);summaryGroupOrder.splice(ti,0,summaryDragSrc);
+  summaryDragSrc=null;
+  sessionStorage.setItem('summaryGroupOrder',JSON.stringify(summaryGroupOrder));
+  renderProgressSummary();
+}
 function renderProgressSummary(){
   const el=document.getElementById('progressSummaryCard');
   if(!el)return;
@@ -1538,7 +1553,13 @@ function renderProgressSummary(){
     if(db===null)return -1;
     return da-db;
   });
-  const body=groupNames.map(g=>{
+  // 저장된 그룹 순서 적용
+  const savedGroupOrder=JSON.parse(sessionStorage.getItem('summaryGroupOrder')||'[]');
+  const orderedGroups=savedGroupOrder.length
+    ?[...savedGroupOrder.filter(g=>groups[g]),...groupNames.filter(g=>!savedGroupOrder.includes(g))]
+    :groupNames;
+  summaryGroupOrder=[...orderedGroups];
+  const body=orderedGroups.map(g=>{
     const items=groups[g];
     const isOpen=expandedSummaryGroups.has(g);
     const soonest=items[0]; // 이미 d-day 임박순 정렬됨
@@ -1546,7 +1567,9 @@ function renderProgressSummary(){
     const ddayColor=soonest.dday===null?'var(--tx4)':soonest.dday<0?'var(--warn)':soonest.dday<=30?'var(--duo-text)':'var(--tx3)';
     const gDone=items.reduce((s,it)=>s+it.done,0),gTotal=items.reduce((s,it)=>s+it.total,0);
     const gPct=gTotal?Math.round(gDone/gTotal*100):0;
-    const headerRow=`<div onclick="toggleSummaryGroup('${esc(g).replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--ac-light)'" onmouseout="this.style.background='transparent'">
+    const safeG=esc(g).replace(/'/g,"\\'");
+    const headerRow=`<div class="summary-group-row" onclick="toggleSummaryGroup('${safeG}')" draggable="true" ondragstart="summaryDragStart(event,'${safeG}')" ondragend="summaryDragEnd(event)" ondragover="summaryDragOver(event,'${safeG}')" ondrop="summaryDrop(event,'${safeG}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:grab;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--ac-light)'" onmouseout="this.style.background='transparent'">
+        <span style="font-size:10px;color:var(--tx4);flex-shrink:0">⠿</span>
         <span style="font-size:11px;color:var(--tx3);width:14px;flex-shrink:0">${isOpen?'▼':'▶'}</span>
         <span style="font-size:13px;font-weight:800;color:var(--ac);flex-shrink:0">📦 ${esc(g)}</span>
         <span style="font-size:10.5px;font-weight:700;color:var(--tx3);background:var(--ac-light);padding:1px 8px;border-radius:20px;flex-shrink:0">${items.length}건</span>
