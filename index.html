@@ -99,7 +99,9 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic 
 .btn-back:hover{background:rgba(110,98,182,.16);}
 
 /* 제품 카드 */
-.product-card{background:var(--card);border-radius:18px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);overflow:visible;transition:.2s;}
+.product-card{background:var(--card);border-radius:18px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);overflow:visible;transition:.2s;cursor:grab;}
+.product-card.drag-over{border:2px dashed var(--ac);background:var(--ac-light);}
+.product-card.dragging{opacity:.4;cursor:grabbing;}
 .product-card:hover{box-shadow:0 6px 24px var(--shadow2);}
 .pc-head{padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);border-radius:18px 18px 0 0;overflow:visible;cursor:pointer;transition:.15s;}
 .pc-head:hover{background:var(--ac-light);}
@@ -481,21 +483,22 @@ tr:hover td{background:rgba(110,98,182,.04);}
 <!-- 모달들 -->
 <div class="modal-bg" id="addProductModal"><div class="modal">
   <div class="modal-title">제품 추가</div>
+  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="mpGroup" list="groupListData" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
+  <datalist id="groupListData"></datalist>
   <label class="m-label">신제품명 *</label><input class="m-input" id="mpName" placeholder="예: 리토바젯 10/80">
   <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="mpReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="mpProfitGroup" placeholder="A, B, C"></div></div>
-  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="mpGroup" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
   <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="mpEstPrice" placeholder="850"></div><div><label class="m-label">제조단위</label><input class="m-input" id="mpMfgUnit" placeholder="정, 캡슐, mL"></div></div>
-  <div class="m-row"><div><label class="m-label">개발구분 *</label><select class="m-select" id="mpType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option><option value="자체(제제개선)">자체(제제개선)</option><option value="자체(제조위탁)">자체(제조위탁)</option><option value="임상생산">임상생산</option><option value="기타">기타</option></select></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <datalist id="typeListData"><option value="자체개발"><option value="위탁개발"><option value="자체(제제개선)"><option value="자체(제조위탁)"><option value="임상생산"><option value="기타"></datalist><div class="m-row"><div><label class="m-label">개발구분 * <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="mpType" list="typeListData" placeholder="예: 자체개발, 위탁개발…"></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addProductModal')">취소</button><button class="btn-ok" onclick="submitProduct()">추가</button></div>
 </div></div>
 
 <div class="modal-bg" id="editProductModal"><div class="modal">
   <div class="modal-title">제품 정보 수정</div>
+  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="eprodGroup" list="groupListData" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
   <label class="m-label">신제품명</label><input class="m-input" id="eprodName">
   <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="eprodReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="eprodProfitGroup"></div></div>
-  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="eprodGroup" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
   <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="eprodEstPrice"></div><div><label class="m-label">제조단위</label><input class="m-input" id="eprodMfgUnit"></div></div>
-  <div class="m-row"><div><label class="m-label">개발구분</label><select class="m-select" id="eprodType"><option value="자체">자체개발</option><option value="위탁">위탁개발</option><option value="자체(제제개선)">자체(제제개선)</option><option value="자체(제조위탁)">자체(제조위탁)</option><option value="임상생산">임상생산</option><option value="기타">기타</option></select></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분 <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="eprodType" list="typeListData" placeholder="예: 자체개발, 위탁개발…"></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('editProductModal')">취소</button><button class="btn-ok" onclick="submitEditProduct()">저장</button></div>
 </div></div>
 
@@ -656,9 +659,21 @@ async function loadAllData() {
   (data.deptContacts || []).forEach(r => {
     deptContacts[r['부서명']] = {manager: r['담당자']||'', email: r['이메일']||''};
   });
+  // 저장된 순서 적용
+  const savedOrder = JSON.parse(sessionStorage.getItem('productOrder')||'[]');
+  if(savedOrder.length){
+    const orderMap={};savedOrder.forEach((id,i)=>orderMap[id]=i);
+    products.sort((a,b)=>{
+      const ai=orderMap[a.id]??999,bi=orderMap[b.id]??999;
+      return ai-bi;
+    });
+  }
   hideLoading();
   updateKPI();
   updateDeptDatalist();
+  // 그룹명 datalist 자동 채우기
+  const gl=document.getElementById('groupListData');
+  if(gl){const groups=[...new Set(products.map(p=>p.group).filter(Boolean))];gl.innerHTML=groups.map(g=>`<option value="${g}">`).join('');}
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -1063,6 +1078,23 @@ function getGroupName(p){
   const g=m?m[0].trim():name.trim();
   return g||'미분류';
 }
+// ── 제품 카드 드래그 순서 변경 ──
+let dragSrcIdx=null;
+function prodDragStart(e,pi){dragSrcIdx=pi;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function prodDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));}
+function prodDragOver(e,pi){e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));e.currentTarget.classList.add('drag-over');}
+function prodDrop(e,pi){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(dragSrcIdx===null||dragSrcIdx===pi)return;
+  // 실제 products 배열에서 순서 변경
+  const moved=products.splice(dragSrcIdx,1)[0];
+  products.splice(pi>dragSrcIdx?pi-1:pi,0,moved);
+  dragSrcIdx=null;
+  sessionStorage.setItem('productOrder',JSON.stringify(products.map(p=>p.id)));
+  renderProducts();
+  renderProgressSummary();
+}
 function buildProductCard(p){
   const pi=products.indexOf(p);const {pct}=calcBigPct(p);
   const pctColor=pct>=70?'var(--ok)':pct>=30?'var(--ac)':'var(--tx4)';
@@ -1070,7 +1102,7 @@ function buildProductCard(p){
   const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
   const {bg:stBg,cl:stClr}=statusColors(p.status);
   const isExpanded=expandedPertCards.has(pi);
-  return `<div class="product-card" data-pi="${pi}"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
+  return `<div class="product-card" data-pi="${pi}" draggable="true" ondragstart="prodDragStart(event,${pi})" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,${pi})" ondrop="prodDrop(event,${pi})"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${fmtNum(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(p.type)}</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
 }
 
 function renderProducts(){
@@ -1174,7 +1206,6 @@ function renderDeptTasks(pi){
     </table>
   </div>`;
 }
-let dragSrcIdx=null;
 function deptDragStart(e,idx){dragSrcIdx=idx;e.currentTarget.classList.add('dragging');}
 function deptDragOver(e){e.preventDefault();}
 function deptDragEnd(e){e.currentTarget.classList.remove('dragging');}
