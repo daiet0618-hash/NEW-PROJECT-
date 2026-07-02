@@ -658,7 +658,7 @@ async function loadAllData() {
     deptContacts[r['부서명']] = {manager: r['담당자']||'', email: r['이메일']||''};
   });
   // 저장된 순서 적용
-  const savedOrder = JSON.parse(sessionStorage.getItem('productOrder')||'[]');
+  const savedOrder = JSON.parse(localStorage.getItem('productOrder')||'[]');
   if(savedOrder.length){
     const orderMap={};savedOrder.forEach((id,i)=>orderMap[id]=i);
     products.sort((a,b)=>{
@@ -1081,62 +1081,86 @@ function toggleSort(){curSort=curSort==='none'?'asc':curSort==='asc'?'desc':'non
 function switchSubTab(tab){curSubTab=tab;document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('subtab-'+tab).classList.add('active');renderProducts();}
 
 // ── 묶음(폴더) 상태 ──
-// topOrder: 최상위 화면에 보이는 순서. 'p:<productId>'(단일 카드) 또는 'b:<bundleId>'(묶음 카드) 토큰의 배열.
-// bundles: { <bundleId>: {id, name, productIds:[...]} }
-let bundles=JSON.parse(sessionStorage.getItem('productBundles')||'{}');
-let topOrder=JSON.parse(sessionStorage.getItem('topOrder')||'[]');
+// 묶음 "소속"은 구글시트에 이미 있는 그룹명(product.group) 컬럼에 저장해서 서버에 영구 보존한다.
+// 같은 group 값을 가진 제품 2개 이상 = 하나의 폴더. topOrder(화면 순서)만 이 브라우저 localStorage에 보관.
+let topOrder=JSON.parse(localStorage.getItem('topOrder')||'[]');
+localStorage.removeItem('productBundles'); // 이전 버전(브라우저에만 저장하던 방식)의 흔적 정리
 let expandedBundles=new Set();
-let summaryOrder=JSON.parse(sessionStorage.getItem('summaryOrder')||'[]');
-function persistBundles(){
-  sessionStorage.setItem('productBundles',JSON.stringify(bundles));
-  sessionStorage.setItem('topOrder',JSON.stringify(topOrder));
+let summaryOrder=JSON.parse(localStorage.getItem('summaryOrder')||'[]');
+function persistTopOrder(){localStorage.setItem('topOrder',JSON.stringify(topOrder));}
+// group 값 기준으로 현재 묶음들을 계산 (멤버 1명뿐이면 폴더로 안 침)
+function getBundles(){
+  const map={};
+  products.forEach(p=>{
+    const g=(p.group||'').trim();
+    if(g)(map[g]=map[g]||{name:g,productIds:[]}).productIds.push(p.id);
+  });
+  Object.keys(map).forEach(g=>{if(map[g].productIds.length<2)delete map[g];});
+  return map;
 }
-// products/bundles와 topOrder를 맞춰줌: 삭제된 제품 정리, 1개 남은 묶음 해제, 새 제품은 끝에 추가
+// 제품 한 개의 group 값을 로컬에서 즉시 반영 + 백엔드(구글시트)에 저장
+function setProductGroup(pid,groupVal){
+  const p=products.find(x=>x.id===pid);
+  if(!p)return;
+  p.group=groupVal;
+  apiCall('updateProduct',{productId:pid,...p}).then(res=>{
+    if(res&&res.error)alert('묶음 정보 저장 실패: '+res.error);
+  }).catch(err=>console.error('묶음 저장 오류:',err));
+}
+function uniqueBundleName(base='새 묶음'){
+  const existing=new Set(products.map(p=>(p.group||'').trim()).filter(Boolean));
+  if(!existing.has(base))return base;
+  let i=2;while(existing.has(`${base} (${i})`))i++;
+  return `${base} (${i})`;
+}
+// products/묶음과 topOrder를 맞춰줌: 삭제된 제품 정리, 새 제품/새 묶음은 끝에 추가
 function syncTopOrder(){
   const allIds=new Set(products.map(p=>p.id));
-  Object.values(bundles).forEach(b=>{b.productIds=b.productIds.filter(id=>allIds.has(id));});
-  Object.keys(bundles).forEach(bid=>{
-    if(bundles[bid].productIds.length===0){delete bundles[bid];expandedBundles.delete(bid);}
-  });
-  Object.keys(bundles).forEach(bid=>{
-    const b=bundles[bid];
-    if(b&&b.productIds.length===1){
-      const idx=topOrder.indexOf('b:'+bid);
-      if(idx>-1)topOrder[idx]='p:'+b.productIds[0];else topOrder.push('p:'+b.productIds[0]);
-      delete bundles[bid];expandedBundles.delete(bid);
-    }
-  });
-  const bundledIds=new Set(Object.values(bundles).flatMap(b=>b.productIds));
+  const bundleMap=getBundles();
+  const bundledIds=new Set(Object.values(bundleMap).flatMap(b=>b.productIds));
   topOrder=topOrder.filter(tok=>{
-    if(tok.startsWith('b:'))return !!bundles[tok.slice(2)];
-    return allIds.has(tok.slice(2))&&!bundledIds.has(tok.slice(2));
+    if(tok.startsWith('b:'))return !!bundleMap[decodeURIComponent(tok.slice(2))];
+    const pid=tok.slice(2);
+    return allIds.has(pid)&&!bundledIds.has(pid);
   });
   const seen=new Set();topOrder=topOrder.filter(tok=>seen.has(tok)?false:(seen.add(tok),true));
+  Object.keys(bundleMap).forEach(g=>{const tok='b:'+encodeURIComponent(g);if(!topOrder.includes(tok))topOrder.push(tok);});
   products.forEach(p=>{if(!bundledIds.has(p.id)&&!topOrder.includes('p:'+p.id))topOrder.push('p:'+p.id);});
-  persistBundles();
+  persistTopOrder();
 }
-function toggleBundle(bid){if(expandedBundles.has(bid))expandedBundles.delete(bid);else expandedBundles.add(bid);renderProducts();}
-function renameBundle(bid){
-  const b=bundles[bid];if(!b)return;
-  const name=prompt('묶음 이름',b.name);
+function toggleBundle(g){g=decodeURIComponent(g);if(expandedBundles.has(g))expandedBundles.delete(g);else expandedBundles.add(g);renderProducts();renderProgressSummary();}
+function renameBundle(g){
+  g=decodeURIComponent(g);
+  const bundleMap=getBundles();const b=bundleMap[g];if(!b)return;
+  const name=prompt('묶음 이름',g);
   if(name===null)return;
-  b.name=name.trim()||'새 묶음';
-  persistBundles();renderProducts();
+  const newName=name.trim();
+  if(!newName||newName===g)return;
+  b.productIds.forEach(pid=>setProductGroup(pid,newName));
+  if(expandedBundles.has(g)){expandedBundles.delete(g);expandedBundles.add(newName);}
+  const idx=topOrder.indexOf('b:'+encodeURIComponent(g));
+  if(idx>-1)topOrder[idx]='b:'+encodeURIComponent(newName);
+  persistTopOrder();
+  renderProducts();renderProgressSummary();
 }
-function removeFromBundle(bid,pid){
-  const b=bundles[bid];if(!b)return;
-  b.productIds=b.productIds.filter(id=>id!==pid);
-  const idx=topOrder.indexOf('b:'+bid);
+function removeFromBundle(g,pid){
+  g=decodeURIComponent(g);
+  setProductGroup(pid,'');
+  const idx=topOrder.indexOf('b:'+encodeURIComponent(g));
   if(idx>-1)topOrder.splice(idx+1,0,'p:'+pid);else topOrder.push('p:'+pid);
-  persistBundles();renderProducts();
+  persistTopOrder();
+  renderProducts();renderProgressSummary();
 }
-function dissolveBundle(bid){
-  const b=bundles[bid];if(!b)return;
-  const idx=topOrder.indexOf('b:'+bid);
+function dissolveBundle(g){
+  g=decodeURIComponent(g);
+  const bundleMap=getBundles();const b=bundleMap[g];if(!b)return;
+  const idx=topOrder.indexOf('b:'+encodeURIComponent(g));
   const tokens=b.productIds.map(id=>'p:'+id);
   if(idx>-1)topOrder.splice(idx,1,...tokens);else topOrder.push(...tokens);
-  delete bundles[bid];expandedBundles.delete(bid);
-  persistBundles();renderProducts();
+  b.productIds.forEach(pid=>setProductGroup(pid,''));
+  expandedBundles.delete(g);
+  persistTopOrder();
+  renderProducts();renderProgressSummary();
 }
 
 // ── 카드 드래그: 가장자리에 놓으면 순서 변경, 카드 중앙에 놓으면 묶음(폴더) 생성/합치기 ──
@@ -1167,37 +1191,37 @@ function reorderTopLevel(srcTok,targetTok){
   topOrder=topOrder.filter(t=>t!==srcTok);
   const ti=topOrder.indexOf(targetTok);
   topOrder.splice(ti,0,srcTok);
-  persistBundles();
+  persistTopOrder();
 }
 function mergeIntoBundle(srcTok,targetTok){
   const srcIsBundle=srcTok.startsWith('b:'),targetIsBundle=targetTok.startsWith('b:');
   if(targetIsBundle){
-    const b=bundles[targetTok.slice(2)];if(!b)return;
+    const g=decodeURIComponent(targetTok.slice(2));
     if(srcIsBundle){
-      const sb=bundles[srcTok.slice(2)];if(!sb)return;
-      sb.productIds.forEach(id=>{if(!b.productIds.includes(id))b.productIds.push(id);});
-      delete bundles[srcTok.slice(2)];expandedBundles.delete(srcTok.slice(2));
+      const g2=decodeURIComponent(srcTok.slice(2));
+      products.filter(p=>(p.group||'').trim()===g2).forEach(p=>setProductGroup(p.id,g));
+      expandedBundles.delete(g2);
     }else{
-      const pid=srcTok.slice(2);
-      if(!b.productIds.includes(pid))b.productIds.push(pid);
+      setProductGroup(srcTok.slice(2),g);
     }
     topOrder=topOrder.filter(t=>t!==srcTok);
   }else if(srcIsBundle){
-    const b=bundles[srcTok.slice(2)];if(!b)return;
+    const g=decodeURIComponent(srcTok.slice(2));
     const pid=targetTok.slice(2);
-    if(!b.productIds.includes(pid))b.productIds.push(pid);
+    setProductGroup(pid,g);
     const ti=topOrder.indexOf(targetTok);
     topOrder=topOrder.filter(t=>t!==srcTok&&t!==targetTok);
     topOrder.splice(ti,0,srcTok);
   }else{
-    const id='bd_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    bundles[id]={id,name:'새 묶음',productIds:[targetTok.slice(2),srcTok.slice(2)]};
+    const name=uniqueBundleName();
+    setProductGroup(targetTok.slice(2),name);
+    setProductGroup(srcTok.slice(2),name);
     const ti=topOrder.indexOf(targetTok);
     topOrder=topOrder.filter(t=>t!==srcTok&&t!==targetTok);
-    topOrder.splice(ti,0,'b:'+id);
-    expandedBundles.add(id);
+    topOrder.splice(ti,0,'b:'+encodeURIComponent(name));
+    expandedBundles.add(name);
   }
-  persistBundles();
+  persistTopOrder();
 }
 
 function buildProductCard(p){
@@ -1210,13 +1234,14 @@ function buildProductCard(p){
   const tok='p:'+p.id;
   return `<div class="product-card" data-pi="${pi}" draggable="true" ondragstart="prodDragStart(event,'${tok}')" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,'${tok}')" ondrop="prodDrop(event,'${tok}')"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${fmtNum(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${fmtMfgUnit(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(p.type)}</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}${p.consignee?`<span class="badge" style="background:var(--duo-dim);color:var(--duo-text)">🏢 ${esc(p.consignee)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
 }
-function buildBundleCard(b){
-  const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
-  if(!members.length)return '';
-  const isOpen=expandedBundles.has(b.id);
+function buildBundleCard(g){
+  const members=products.filter(p=>(p.group||'').trim()===g);
+  if(members.length<2)return '';
+  const isOpen=expandedBundles.has(g);
   const avgPct=Math.round(members.reduce((s,p)=>s+calcBigPct(p).pct,0)/members.length);
   const pctColor=avgPct>=70?'var(--ok)':avgPct>=30?'var(--ac)':'var(--tx4)';
-  const tok='b:'+b.id;
+  const safeG=encodeURIComponent(g);
+  const tok='b:'+safeG;
   // 대표 배지: 멤버들이 전부 같은 값이면 그 값, 섞여있으면 개수로 표시
   const types=[...new Set(members.map(p=>p.type))];
   const typeLabel=types.length===1?types[0]:`${types.length}종`;
@@ -1238,22 +1263,22 @@ function buildBundleCard(b){
       <span class="badge" style="background:${mTypeBg};color:${mTypeClr};flex-shrink:0">${esc(p.type)}</span>
       <span class="badge" style="background:${mStBg};color:${mStClr};flex-shrink:0">${p.status}</span>
       ${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);flex-shrink:0">📅 ${fmtYM(p.releaseDate)}</span>`:''}
-      <button class="td-del" onclick="event.stopPropagation();removeFromBundle('${b.id}','${p.id}')" title="묶음에서 빼기">✕</button>
+      <button class="td-del" onclick="event.stopPropagation();removeFromBundle('${safeG}','${p.id}')" title="묶음에서 빼기">✕</button>
     </div>`;
   }).join(''):'';
   return `<div class="product-card bundle-card" draggable="true" ondragstart="prodDragStart(event,'${tok}')" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,'${tok}')" ondrop="prodDrop(event,'${tok}')" style="border-style:dashed;background:var(--ac-light)">
-    <div class="pc-head" onclick="toggleBundle('${b.id}')" style="cursor:pointer">
+    <div class="pc-head" onclick="toggleBundle('${safeG}')" style="cursor:pointer">
       <div style="display:flex;align-items:center;gap:12px">
         ${circlePct(avgPct,pctColor)}
         <div>
-          <span class="pc-name" ondblclick="event.stopPropagation();renameBundle('${b.id}')" title="더블클릭하여 이름 변경">🗂 ${esc(b.name)} <span style="font-size:11px;color:var(--tx3);font-weight:700">${members.length}개</span></span>
+          <span class="pc-name" ondblclick="event.stopPropagation();renameBundle('${safeG}')" title="더블클릭하여 이름 변경">🗂 ${esc(g)} <span style="font-size:11px;color:var(--tx3);font-weight:700">${members.length}개</span></span>
           <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(typeLabel)}</span>${stBadge}${dateBadge}</div>
         </div>
       </div>
       <span style="font-size:12px;color:var(--tx4);font-weight:600">${isOpen?'▲':'▼'}</span>
     </div>
     <div class="pc-progress"><div class="pc-progress-bar" style="width:${avgPct}%"></div></div>
-    ${isOpen?`<div style="padding:12px 18px">${rows}<button class="btn-cancel" style="width:100%" onclick="event.stopPropagation();dissolveBundle('${b.id}')">묶음 전체 해제</button></div>`:''}
+    ${isOpen?`<div style="padding:12px 18px">${rows}<button class="btn-cancel" style="width:100%" onclick="event.stopPropagation();dissolveBundle('${safeG}')">묶음 전체 해제</button></div>`:''}
   </div>`;
 }
 
@@ -1274,7 +1299,7 @@ function renderProducts(){
   }
   syncTopOrder();
   el.innerHTML=topOrder.map(tok=>{
-    if(tok.startsWith('b:'))return buildBundleCard(bundles[tok.slice(2)]);
+    if(tok.startsWith('b:'))return buildBundleCard(decodeURIComponent(tok.slice(2)));
     const p=products.find(x=>x.id===tok.slice(2));
     return p?buildProductCard(p):'';
   }).join('');
@@ -1666,15 +1691,16 @@ function buildSummaryRow(p,dday,pct,done,total){
     <div style="width:120px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:800;color:${ddayColor};margin-top:3px">${ddayLabel}</div>
   </div>`;
 }
-function buildBundleSummaryRow(b,dday,pct,done,total){
-  const isOpen=expandedBundles.has(b.id);
+function buildBundleSummaryRow(g,dday,pct,done,total){
+  const isOpen=expandedBundles.has(g);
   const barColor=pct>=70?'var(--ok)':'var(--ac)';
   const ddayLabel=ddayToMonthLabel(dday);
   const ddayColor=dday===null?'var(--tx4)':dday<0?'var(--warn)':dday<=30?'var(--duo-text)':'var(--tx3)';
-  const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
-  const header=`<div class="progress-row" onclick="toggleBundle('${b.id}')" style="align-items:flex-start;cursor:pointer">
+  const members=products.filter(p=>(p.group||'').trim()===g);
+  const safeG=encodeURIComponent(g);
+  const header=`<div class="progress-row" onclick="toggleBundle('${safeG}')" style="align-items:flex-start;cursor:pointer">
     <div style="width:220px;flex-shrink:0;min-width:0">
-      <div style="font-size:13px;font-weight:700;color:var(--ac);white-space:normal;overflow-wrap:break-word;line-height:1.35">🗂 ${esc(b.name)}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--ac);white-space:normal;overflow-wrap:break-word;line-height:1.35">🗂 ${esc(g)}</div>
       <span class="badge" style="background:var(--ac-light);color:var(--ac);margin-top:3px;font-size:10px;padding:1px 7px">${members.length}개 ${isOpen?'▲':'▼'}</span>
     </div>
     <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0;margin-top:3px">
@@ -1708,7 +1734,7 @@ function summaryItemDrop(e,tok){
   order.splice(from,1);
   order.splice(to,0,summaryDragTok);
   summaryOrder=order;
-  sessionStorage.setItem('summaryOrder',JSON.stringify(summaryOrder));
+  localStorage.setItem('summaryOrder',JSON.stringify(summaryOrder));
   summaryDragTok=null;
   renderProgressSummary();
 }
@@ -1720,17 +1746,18 @@ function renderProgressSummary(){
     return;
   }
   syncTopOrder();
-  const bundledIds=new Set(Object.values(bundles).flatMap(b=>b.productIds));
+  const bundleMap=getBundles();
+  const bundledIds=new Set(Object.values(bundleMap).flatMap(b=>b.productIds));
   const entries=[];
-  Object.values(bundles).forEach(b=>{
-    const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+  Object.keys(bundleMap).forEach(g=>{
+    const members=bundleMap[g].productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
     if(!members.length)return;
     const ddays=members.map(p=>calcDday(p)).filter(d=>d!==null);
     const dday=ddays.length?Math.min(...ddays):null;
     const done=members.reduce((s,p)=>s+calcBigPct(p).done,0);
     const total=members.reduce((s,p)=>s+calcBigPct(p).total,0);
     const pct=total?Math.round(done/total*100):0;
-    entries.push({type:'bundle',b,dday,pct,done,total,tok:'b:'+b.id});
+    entries.push({type:'bundle',g,dday,pct,done,total,tok:'b:'+encodeURIComponent(g)});
   });
   products.forEach(p=>{
     if(bundledIds.has(p.id))return;
@@ -1758,14 +1785,14 @@ function renderProgressSummary(){
   }
   const body=entries.map(e=>{
     const inner=e.type==='bundle'
-      ?buildBundleSummaryRow(e.b,e.dday,e.pct,e.done,e.total)
+      ?buildBundleSummaryRow(e.g,e.dday,e.pct,e.done,e.total)
       :buildSummaryRow(e.p,e.dday,e.pct,e.done,e.total);
     return `<div class="summary-drag-item" data-tok="${e.tok}" draggable="true" ondragstart="summaryItemDragStart(event,'${e.tok}')" ondragend="summaryItemDragEnd(event)" ondragover="summaryItemDragOver(event,'${e.tok}')" ondrop="summaryItemDrop(event,'${e.tok}')" style="cursor:grab;border-radius:10px">${inner}</div>`;
   }).join('');
   const orderLabel=summaryOrder.length?'직접 지정한 순서':'발매일 임박 순';
   el.innerHTML=`<div class="dept-head"><span style="font-size:14px;font-weight:800;color:var(--tx1)">📌 진행중 과제 요약</span><span style="font-size:11.5px;color:var(--tx3)">${orderLabel}${summaryOrder.length?' <a href="javascript:void(0)" onclick="resetSummaryOrder()" style="color:var(--ac);text-decoration:underline;margin-left:6px">임박순으로 되돌리기</a>':''}</span></div><div style="padding:6px 4px">${body}</div>`;
 }
-function resetSummaryOrder(){summaryOrder=[];sessionStorage.removeItem('summaryOrder');renderProgressSummary();}
+function resetSummaryOrder(){summaryOrder=[];localStorage.removeItem('summaryOrder');renderProgressSummary();}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
