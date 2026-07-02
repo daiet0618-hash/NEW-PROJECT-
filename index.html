@@ -101,6 +101,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic 
 /* 제품 카드 */
 .product-card{background:var(--card);border-radius:18px;border:1px solid var(--bd);box-shadow:0 2px 12px var(--shadow);overflow:visible;transition:.2s;cursor:grab;}
 .product-card.drag-over{border:2px dashed var(--ac);background:var(--ac-light);}
+.product-card.drag-merge{border:2px solid var(--ac);box-shadow:0 0 0 4px var(--ac-dim);transform:scale(1.02);}
 .product-card.dragging{opacity:.4;cursor:grabbing;}
 .product-card:hover{box-shadow:0 6px 24px var(--shadow2);}
 .pc-head{padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);border-radius:18px 18px 0 0;overflow:visible;cursor:pointer;transition:.15s;}
@@ -349,9 +350,7 @@ tr:hover td{background:rgba(110,98,182,.04);}
             </div>
             <button id="sortBtn" onclick="toggleSort()"
               style="font-size:12px;padding:7px 14px;border:1.5px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer;font-family:inherit;white-space:nowrap;color:var(--tx2);font-weight:600">발매기한 정렬</button>
-            <button id="groupBtn" onclick="toggleGroupView()"
-              style="font-size:12px;padding:7px 14px;border:1.5px solid var(--ac);border-radius:10px;background:var(--ac-light);cursor:pointer;font-family:inherit;white-space:nowrap;color:var(--ac);font-weight:600">🗂 그룹별 보기</button>
-            <button class="btn-add" onclick="openModal('addProductModal')">+ 제품 추가</button>
+            <button class="btn-add" onclick="openModal('addProductModal');toggleConsigneeField('mp')">+ 제품 추가</button>
           </div>
         </div>
         <div class="main-grid" id="productList"></div>
@@ -483,22 +482,21 @@ tr:hover td{background:rgba(110,98,182,.04);}
 <!-- 모달들 -->
 <div class="modal-bg" id="addProductModal"><div class="modal">
   <div class="modal-title">제품 추가</div>
-  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="mpGroup" list="groupListData" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
-  <datalist id="groupListData"></datalist>
   <label class="m-label">신제품명 *</label><input class="m-input" id="mpName" placeholder="예: 리토바젯 10/80">
   <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="mpReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="mpProfitGroup" placeholder="A, B, C"></div></div>
-  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="mpEstPrice" placeholder="850"></div><div><label class="m-label">제조단위</label><input class="m-input" id="mpMfgUnit" placeholder="정, 캡슐, mL"></div></div>
-  <datalist id="typeListData"><option value="자체개발"><option value="위탁개발"><option value="자체(제제개선)"><option value="자체(제조위탁)"><option value="임상생산"><option value="기타"></datalist><div class="m-row"><div><label class="m-label">개발구분 * <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="mpType" list="typeListData" placeholder="예: 자체개발, 위탁개발…"></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="mpEstPrice" placeholder="850"></div><div><label class="m-label">제조단위</label><input class="m-input" id="mpMfgUnit" placeholder="정, 캡슐, mL" oninput="formatMfgUnitInput(this)"></div></div>
+  <datalist id="typeListData"><option value="자체개발"><option value="위탁개발"><option value="자체(제제개선)"><option value="자체(제조위탁)"><option value="임상생산"><option value="기타"></datalist><div class="m-row"><div><label class="m-label">개발구분 * <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="mpType" list="typeListData" placeholder="예: 자체개발, 위탁개발…" oninput="toggleConsigneeField('mp')"></div><div><label class="m-label">상태 *</label><select class="m-select" id="mpStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <div id="mpConsigneeWrap" style="display:none"><label class="m-label">위탁처</label><input class="m-input" id="mpConsignee" placeholder="예: 다산제약"></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('addProductModal')">취소</button><button class="btn-ok" onclick="submitProduct()">추가</button></div>
 </div></div>
 
 <div class="modal-bg" id="editProductModal"><div class="modal">
   <div class="modal-title">제품 정보 수정</div>
-  <label class="m-label">그룹명 (제품군)</label><input class="m-input" id="eprodGroup" list="groupListData" placeholder="예: 브리바탑 (비워두면 제품명에서 자동 추측)">
   <label class="m-label">신제품명</label><input class="m-input" id="eprodName">
   <div class="m-row"><div><label class="m-label">발매기한 (년·월)</label><input class="m-input" id="eprodReleaseDate" type="month"></div><div><label class="m-label">수익군</label><input class="m-input" id="eprodProfitGroup"></div></div>
-  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="eprodEstPrice"></div><div><label class="m-label">제조단위</label><input class="m-input" id="eprodMfgUnit"></div></div>
-  <div class="m-row"><div><label class="m-label">개발구분 <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="eprodType" list="typeListData" placeholder="예: 자체개발, 위탁개발…"></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <div class="m-row"><div><label class="m-label">예상약가</label><input class="m-input" id="eprodEstPrice"></div><div><label class="m-label">제조단위</label><input class="m-input" id="eprodMfgUnit" oninput="formatMfgUnitInput(this)"></div></div>
+  <div class="m-row"><div><label class="m-label">개발구분 <span style="font-size:10px;color:var(--tx3)">(직접 입력 가능)</span></label><input class="m-input" id="eprodType" list="typeListData" placeholder="예: 자체개발, 위탁개발…" oninput="toggleConsigneeField('eprod')"></div><div><label class="m-label">상태</label><select class="m-select" id="eprodStatus"><option value="검토">검토</option><option value="진행">진행</option><option value="보류">보류</option><option value="지연">지연</option><option value="기타">기타</option></select></div></div>
+  <div id="eprodConsigneeWrap" style="display:none"><label class="m-label">위탁처</label><input class="m-input" id="eprodConsignee" placeholder="예: 다산제약"></div>
   <div class="m-foot"><button class="btn-cancel" onclick="closeModal('editProductModal')">취소</button><button class="btn-ok" onclick="submitEditProduct()">저장</button></div>
 </div></div>
 
@@ -671,9 +669,6 @@ async function loadAllData() {
   hideLoading();
   updateKPI();
   updateDeptDatalist();
-  // 그룹명 datalist 자동 채우기
-  const gl=document.getElementById('groupListData');
-  if(gl){const groups=[...new Set(products.map(p=>p.group).filter(Boolean))];gl.innerHTML=groups.map(g=>`<option value="${g}">`).join('');}
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -1001,6 +996,22 @@ function toMonthVal(d){if(!d)return '';const m=String(d).match(/^(\d{4}-\d{2})/)
 function fromMonthVal(v){if(!v)return '';return v.length===7?v+'-01':v;}
 function fmtYM(d){if(!d)return '';const m=String(d).match(/(\d{4})-(\d{2})/);return m?m[1]+'.'+m[2]+'월':d;}
 function fmtNum(v){const n=Number(String(v).replace(/,/g,''));return isNaN(n)?v:n.toLocaleString('ko-KR');}
+// 제조단위 입력창: 숫자만 입력하면 1000단위 콤마 자동 적용, 텍스트(정/캡슐/mL 등)는 그대로 둠
+function formatMfgUnitInput(el){
+  const digitsOnly=el.value.replace(/,/g,'');
+  if(digitsOnly!==''&&/^\d+$/.test(digitsOnly)){
+    const pos=el.selectionStart,before=el.value.length;
+    el.value=Number(digitsOnly).toLocaleString('ko-KR');
+    const diff=el.value.length-before;
+    el.setSelectionRange(pos+diff,pos+diff);
+  }
+}
+// 제조단위 표시: 숫자면 콤마 포맷, 텍스트면 그대로 이스케이프
+function fmtMfgUnit(v){
+  if(v===undefined||v===null||v==='')return '';
+  const digitsOnly=String(v).replace(/,/g,'');
+  return /^\d+$/.test(digitsOnly)?Number(digitsOnly).toLocaleString('ko-KR'):esc(v);
+}
 function buildMonthAxis(rs,re,pct){
   const totalMonths=Math.max(1,Math.round((re-rs)/(30*24*60*60*1000)));
   let d=new Date(rs);d.setDate(1);
@@ -1065,36 +1076,130 @@ function circlePct(pct,color,size=48){
   return `<div class="pct-circle" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="4"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c} ${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${size/2} ${size/2})"/></svg><div class="pct-circle-center" style="color:${color};font-size:${size<=48?'11':'12'}px">${pct}%</div></div>`;
 }
 
-let curSubTab='all',curSearch='',curSort='none',curGroupView=true;
+let curSubTab='all',curSearch='',curSort='none';
 function toggleSort(){curSort=curSort==='none'?'asc':curSort==='asc'?'desc':'none';renderProducts();}
 function switchSubTab(tab){curSubTab=tab;document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('subtab-'+tab).classList.add('active');renderProducts();}
-function toggleGroupView(){curGroupView=!curGroupView;const gb=document.getElementById('groupBtn');if(gb){gb.style.background=curGroupView?'var(--ac-light)':'var(--card)';gb.style.color=curGroupView?'var(--ac)':'var(--tx2)';gb.style.borderColor=curGroupView?'var(--ac)':'var(--bd)';}renderProducts();}
-// 제품명에서 함량/용량 등을 뗀 '제품군' 이름 추출 (예: '브리바탑 10/80'→'브리바탑', '리토바젯10mg'→'리토바젯')
-function getGroupName(p){
-  if(typeof p==='object'&&p&&p.group&&p.group.trim())return p.group.trim();
-  const name=typeof p==='object'?p.name:p;
-  if(!name)return '미분류';
-  const m=String(name).match(/^[가-힣A-Za-z]+/);
-  const g=m?m[0].trim():name.trim();
-  return g||'미분류';
+
+// ── 묶음(폴더) 상태 ──
+// topOrder: 최상위 화면에 보이는 순서. 'p:<productId>'(단일 카드) 또는 'b:<bundleId>'(묶음 카드) 토큰의 배열.
+// bundles: { <bundleId>: {id, name, productIds:[...]} }
+let bundles=JSON.parse(sessionStorage.getItem('productBundles')||'{}');
+let topOrder=JSON.parse(sessionStorage.getItem('topOrder')||'[]');
+let expandedBundles=new Set();
+let summaryOrder=JSON.parse(sessionStorage.getItem('summaryOrder')||'[]');
+function persistBundles(){
+  sessionStorage.setItem('productBundles',JSON.stringify(bundles));
+  sessionStorage.setItem('topOrder',JSON.stringify(topOrder));
 }
-// ── 제품 카드 드래그 순서 변경 ──
-let dragSrcIdx=null;
-function prodDragStart(e,pi){dragSrcIdx=pi;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
-function prodDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));}
-function prodDragOver(e,pi){e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));e.currentTarget.classList.add('drag-over');}
-function prodDrop(e,pi){
+// products/bundles와 topOrder를 맞춰줌: 삭제된 제품 정리, 1개 남은 묶음 해제, 새 제품은 끝에 추가
+function syncTopOrder(){
+  const allIds=new Set(products.map(p=>p.id));
+  Object.values(bundles).forEach(b=>{b.productIds=b.productIds.filter(id=>allIds.has(id));});
+  Object.keys(bundles).forEach(bid=>{
+    if(bundles[bid].productIds.length===0){delete bundles[bid];expandedBundles.delete(bid);}
+  });
+  Object.keys(bundles).forEach(bid=>{
+    const b=bundles[bid];
+    if(b&&b.productIds.length===1){
+      const idx=topOrder.indexOf('b:'+bid);
+      if(idx>-1)topOrder[idx]='p:'+b.productIds[0];else topOrder.push('p:'+b.productIds[0]);
+      delete bundles[bid];expandedBundles.delete(bid);
+    }
+  });
+  const bundledIds=new Set(Object.values(bundles).flatMap(b=>b.productIds));
+  topOrder=topOrder.filter(tok=>{
+    if(tok.startsWith('b:'))return !!bundles[tok.slice(2)];
+    return allIds.has(tok.slice(2))&&!bundledIds.has(tok.slice(2));
+  });
+  const seen=new Set();topOrder=topOrder.filter(tok=>seen.has(tok)?false:(seen.add(tok),true));
+  products.forEach(p=>{if(!bundledIds.has(p.id)&&!topOrder.includes('p:'+p.id))topOrder.push('p:'+p.id);});
+  persistBundles();
+}
+function toggleBundle(bid){if(expandedBundles.has(bid))expandedBundles.delete(bid);else expandedBundles.add(bid);renderProducts();}
+function renameBundle(bid){
+  const b=bundles[bid];if(!b)return;
+  const name=prompt('묶음 이름',b.name);
+  if(name===null)return;
+  b.name=name.trim()||'새 묶음';
+  persistBundles();renderProducts();
+}
+function removeFromBundle(bid,pid){
+  const b=bundles[bid];if(!b)return;
+  b.productIds=b.productIds.filter(id=>id!==pid);
+  const idx=topOrder.indexOf('b:'+bid);
+  if(idx>-1)topOrder.splice(idx+1,0,'p:'+pid);else topOrder.push('p:'+pid);
+  persistBundles();renderProducts();
+}
+function dissolveBundle(bid){
+  const b=bundles[bid];if(!b)return;
+  const idx=topOrder.indexOf('b:'+bid);
+  const tokens=b.productIds.map(id=>'p:'+id);
+  if(idx>-1)topOrder.splice(idx,1,...tokens);else topOrder.push(...tokens);
+  delete bundles[bid];expandedBundles.delete(bid);
+  persistBundles();renderProducts();
+}
+
+// ── 카드 드래그: 가장자리에 놓으면 순서 변경, 카드 중앙에 놓으면 묶음(폴더) 생성/합치기 ──
+let dragSrcTok=null;
+function prodDragStart(e,tok){dragSrcTok=tok;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function prodDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.product-card').forEach(c=>{c.classList.remove('drag-over');c.classList.remove('drag-merge');});}
+function prodDragOver(e,tok){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.product-card').forEach(c=>{c.classList.remove('drag-over');c.classList.remove('drag-merge');});
+  const rect=e.currentTarget.getBoundingClientRect();
+  const relX=(e.clientX-rect.left)/rect.width;
+  e.currentTarget.classList.add((relX>0.25&&relX<0.75)?'drag-merge':'drag-over');
+}
+function prodDrop(e,tok){
   e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if(dragSrcIdx===null||dragSrcIdx===pi)return;
-  // 실제 products 배열에서 순서 변경
-  const moved=products.splice(dragSrcIdx,1)[0];
-  products.splice(pi>dragSrcIdx?pi-1:pi,0,moved);
-  dragSrcIdx=null;
-  sessionStorage.setItem('productOrder',JSON.stringify(products.map(p=>p.id)));
+  e.currentTarget.classList.remove('drag-over');e.currentTarget.classList.remove('drag-merge');
+  if(!dragSrcTok||dragSrcTok===tok)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const relX=(e.clientX-rect.left)/rect.width;
+  if(relX>0.25&&relX<0.75)mergeIntoBundle(dragSrcTok,tok);
+  else reorderTopLevel(dragSrcTok,tok);
+  dragSrcTok=null;
   renderProducts();
   renderProgressSummary();
 }
+function reorderTopLevel(srcTok,targetTok){
+  if(topOrder.indexOf(srcTok)<0||topOrder.indexOf(targetTok)<0)return;
+  topOrder=topOrder.filter(t=>t!==srcTok);
+  const ti=topOrder.indexOf(targetTok);
+  topOrder.splice(ti,0,srcTok);
+  persistBundles();
+}
+function mergeIntoBundle(srcTok,targetTok){
+  const srcIsBundle=srcTok.startsWith('b:'),targetIsBundle=targetTok.startsWith('b:');
+  if(targetIsBundle){
+    const b=bundles[targetTok.slice(2)];if(!b)return;
+    if(srcIsBundle){
+      const sb=bundles[srcTok.slice(2)];if(!sb)return;
+      sb.productIds.forEach(id=>{if(!b.productIds.includes(id))b.productIds.push(id);});
+      delete bundles[srcTok.slice(2)];expandedBundles.delete(srcTok.slice(2));
+    }else{
+      const pid=srcTok.slice(2);
+      if(!b.productIds.includes(pid))b.productIds.push(pid);
+    }
+    topOrder=topOrder.filter(t=>t!==srcTok);
+  }else if(srcIsBundle){
+    const b=bundles[srcTok.slice(2)];if(!b)return;
+    const pid=targetTok.slice(2);
+    if(!b.productIds.includes(pid))b.productIds.push(pid);
+    const ti=topOrder.indexOf(targetTok);
+    topOrder=topOrder.filter(t=>t!==srcTok&&t!==targetTok);
+    topOrder.splice(ti,0,srcTok);
+  }else{
+    const id='bd_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    bundles[id]={id,name:'새 묶음',productIds:[targetTok.slice(2),srcTok.slice(2)]};
+    const ti=topOrder.indexOf(targetTok);
+    topOrder=topOrder.filter(t=>t!==srcTok&&t!==targetTok);
+    topOrder.splice(ti,0,'b:'+id);
+    expandedBundles.add(id);
+  }
+  persistBundles();
+}
+
 function buildProductCard(p){
   const pi=products.indexOf(p);const {pct}=calcBigPct(p);
   const pctColor=pct>=70?'var(--ok)':pct>=30?'var(--ac)':'var(--tx4)';
@@ -1102,7 +1207,54 @@ function buildProductCard(p){
   const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
   const {bg:stBg,cl:stClr}=statusColors(p.status);
   const isExpanded=expandedPertCards.has(pi);
-  return `<div class="product-card" data-pi="${pi}" draggable="true" ondragstart="prodDragStart(event,${pi})" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,${pi})" ondrop="prodDrop(event,${pi})"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${fmtNum(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(p.type)}</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
+  const tok='p:'+p.id;
+  return `<div class="product-card" data-pi="${pi}" draggable="true" ondragstart="prodDragStart(event,'${tok}')" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,'${tok}')" ondrop="prodDrop(event,'${tok}')"><div class="pc-head" onclick="showDetail(${pi})"><div style="display:flex;align-items:center;gap:12px">${circlePct(pct,pctColor)}<div>${(p.profitGroup||p.estPrice||p.mfgUnit)?`<div class="info-popover-wrap"><span class="pc-name pc-name-hover">${esc(p.name)}</span><div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${fmtNum(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${fmtMfgUnit(p.mfgUnit)}</span></div>`:''}</div></div>`:`<span class="pc-name">${esc(p.name)}</span>`}<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(p.type)}</span><span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(p.releaseDate)}</span>`:''}${p.consignee?`<span class="badge" style="background:var(--duo-dim);color:var(--duo-text)">🏢 ${esc(p.consignee)}</span>`:''}</div></div></div><span style="font-size:12px;color:var(--tx4);font-weight:600">상세보기 ›</span></div><div class="pc-progress"><div class="pc-progress-bar" style="width:${pct}%"></div></div><div><div class="pert-toggle" onclick="togglePertCollapse(this)"><span>📊 발매 퍼트 (${p.pert.length}건)</span><span class="pert-toggle-arrow">${isExpanded?'▲':'▼'}</span></div><div class="pert-body" style="display:${isExpanded?'':'none'}">${renderGantt(p)}${p.pert.length===0?'':`<div style="padding:0 18px 12px;text-align:right"><button class="btn-add" onclick="event.stopPropagation();curProduct=${pi};openModal('addPertModal')">+ 일정 추가</button></div>`}</div></div></div>`;
+}
+function buildBundleCard(b){
+  const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+  if(!members.length)return '';
+  const isOpen=expandedBundles.has(b.id);
+  const avgPct=Math.round(members.reduce((s,p)=>s+calcBigPct(p).pct,0)/members.length);
+  const pctColor=avgPct>=70?'var(--ok)':avgPct>=30?'var(--ac)':'var(--tx4)';
+  const tok='b:'+b.id;
+  // 대표 배지: 멤버들이 전부 같은 값이면 그 값, 섞여있으면 개수로 표시
+  const types=[...new Set(members.map(p=>p.type))];
+  const typeLabel=types.length===1?types[0]:`${types.length}종`;
+  const typeBg=types.length===1?(types[0]==='자체'?'var(--ac-dim)':'var(--duo-dim)'):'var(--card)';
+  const typeClr=types.length===1?(types[0]==='자체'?'var(--ac)':'var(--duo-text)'):'var(--tx3)';
+  const statuses=[...new Set(members.map(p=>p.status))];
+  let stBadge;
+  if(statuses.length===1){const {bg,cl}=statusColors(statuses[0]);stBadge=`<span class="badge" style="background:${bg};color:${cl}">${statuses[0]}</span>`;}
+  else stBadge=`<span class="badge" style="background:var(--card);color:var(--tx3)">${statuses.length}개 상태</span>`;
+  const dates=members.map(p=>p.releaseDate).filter(Boolean).sort();
+  const dateBadge=dates.length?`<span class="badge" style="background:var(--ac-light);color:var(--mid)">📅 ${fmtYM(dates[0])}${dates.length>1?' 外':''}</span>`:'';
+  const rows=isOpen?members.map(p=>{
+    const pi=products.indexOf(p);
+    const mTypeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';
+    const mTypeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
+    const {bg:mStBg,cl:mStClr}=statusColors(p.status);
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="showDetail(${pi})">${esc(p.name)}</span>
+      <span class="badge" style="background:${mTypeBg};color:${mTypeClr};flex-shrink:0">${esc(p.type)}</span>
+      <span class="badge" style="background:${mStBg};color:${mStClr};flex-shrink:0">${p.status}</span>
+      ${p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);flex-shrink:0">📅 ${fmtYM(p.releaseDate)}</span>`:''}
+      <button class="td-del" onclick="event.stopPropagation();removeFromBundle('${b.id}','${p.id}')" title="묶음에서 빼기">✕</button>
+    </div>`;
+  }).join(''):'';
+  return `<div class="product-card bundle-card" draggable="true" ondragstart="prodDragStart(event,'${tok}')" ondragend="prodDragEnd(event)" ondragover="prodDragOver(event,'${tok}')" ondrop="prodDrop(event,'${tok}')" style="border-style:dashed;background:var(--ac-light)">
+    <div class="pc-head" onclick="toggleBundle('${b.id}')" style="cursor:pointer">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${circlePct(avgPct,pctColor)}
+        <div>
+          <span class="pc-name" ondblclick="event.stopPropagation();renameBundle('${b.id}')" title="더블클릭하여 이름 변경">🗂 ${esc(b.name)} <span style="font-size:11px;color:var(--tx3);font-weight:700">${members.length}개</span></span>
+          <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap"><span class="badge" style="background:${typeBg};color:${typeClr}">${esc(typeLabel)}</span>${stBadge}${dateBadge}</div>
+        </div>
+      </div>
+      <span style="font-size:12px;color:var(--tx4);font-weight:600">${isOpen?'▲':'▼'}</span>
+    </div>
+    <div class="pc-progress"><div class="pc-progress-bar" style="width:${avgPct}%"></div></div>
+    ${isOpen?`<div style="padding:12px 18px">${rows}<button class="btn-cancel" style="width:100%" onclick="event.stopPropagation();dissolveBundle('${b.id}')">묶음 전체 해제</button></div>`:''}
+  </div>`;
 }
 
 function renderProducts(){
@@ -1113,19 +1265,18 @@ function renderProducts(){
   const sb=document.getElementById('sortBtn');
   if(sb)sb.textContent=curSort==='asc'?'발매기한 ↑':curSort==='desc'?'발매기한 ↓':'발매기한 정렬';
   if(filtered.length===0){el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--tx4)">검색 결과가 없습니다.</div>`;return;}
-  if(!curGroupView){
-    el.className='main-grid';
+  el.className='main-grid';
+  // 검색/정렬/탭 필터가 걸려있으면 묶음을 풀어서 낱개 카드로 보여줌(검색 결과 안에 폴더가 있으면 헷갈리므로)
+  const plainView=!!curSearch||curSort!=='none'||curSubTab!=='all';
+  if(plainView){
     el.innerHTML=filtered.map(p=>buildProductCard(p)).join('');
     return;
   }
-  // 그룹별 보기
-  el.className='';
-  const groups={};
-  filtered.forEach(p=>{const g=getGroupName(p);(groups[g]=groups[g]||[]).push(p);});
-  const groupNames=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko'));
-  el.innerHTML=groupNames.map(g=>{
-    const items=groups[g];
-    return `<div class="group-section"><div class="group-section-head"><span class="group-section-title">📦 ${esc(g)}</span><span class="group-section-count">${items.length}건</span><span class="group-section-line"></span></div><div class="group-section-grid">${items.map(p=>buildProductCard(p)).join('')}</div></div>`;
+  syncTopOrder();
+  el.innerHTML=topOrder.map(tok=>{
+    if(tok.startsWith('b:'))return buildBundleCard(bundles[tok.slice(2)]);
+    const p=products.find(x=>x.id===tok.slice(2));
+    return p?buildProductCard(p):'';
   }).join('');
 }
 
@@ -1133,14 +1284,14 @@ function showDetail(pi){
   curProduct=pi;const p=products[pi];showView('detailView');
   curDeptSort='none';
   const sortSel=document.getElementById('deptSortSelect');if(sortSel)sortSel.value='none';
-  const hasInfo=p.profitGroup||p.estPrice||p.mfgUnit;
-  const infoPopover=hasInfo?`<div class="info-popover"><div class="info-popover-arrow"></div>${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${esc(p.mfgUnit)}</span></div>`:''}</div>`:'';
+  const hasInfo=p.profitGroup||p.estPrice||p.mfgUnit||p.consignee;
+  const infoPopover=hasInfo?`<div class="info-popover"><div class="info-popover-arrow"></div>${p.consignee?`<div class="ip-row"><span class="ip-label">위탁처</span><span class="ip-val">${esc(p.consignee)}</span></div>`:''}${p.profitGroup?`<div class="ip-row"><span class="ip-label">수익군</span><span class="ip-val">${esc(p.profitGroup)}</span></div>`:''}${p.estPrice?`<div class="ip-row"><span class="ip-label">예상약가</span><span class="ip-val">${esc(p.estPrice)}<small>원</small></span></div>`:''}${p.mfgUnit?`<div class="ip-row"><span class="ip-label">제조단위</span><span class="ip-val">${fmtMfgUnit(p.mfgUnit)}</span></div>`:''}</div>`:'';
   document.getElementById('detailName').innerHTML=hasInfo?`<div class="info-popover-wrap"><span style="border-bottom:2px dotted rgba(110,98,182,.35);cursor:default">${esc(p.name)}</span>${infoPopover}</div>`:esc(p.name);
   document.getElementById('detailInfoChips').innerHTML='';
   const typeBg=p.type==='자체'?'var(--ac-dim)':'var(--duo-dim)';const typeClr=p.type==='자체'?'var(--ac)':'var(--duo-text)';
   const {bg:stBg,cl:stClr}=statusColors(p.status);
   document.getElementById('detailTypeBadge').innerHTML=`<span class="badge" style="background:${typeBg};color:${typeClr}">${p.type}개발</span>`;
-  document.getElementById('detailStatusBadge').innerHTML=`<span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>`+(p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);margin-left:4px">📅 ${fmtYM(p.releaseDate)}</span>`:'');
+  document.getElementById('detailStatusBadge').innerHTML=`<span class="badge" style="background:${stBg};color:${stClr}">${p.status}</span>`+(p.releaseDate?`<span class="badge" style="background:var(--ac-light);color:var(--mid);margin-left:4px">📅 ${fmtYM(p.releaseDate)}</span>`:'')+(p.consignee?`<span class="badge" style="background:var(--duo-dim);color:var(--duo-text);margin-left:4px">🏢 ${esc(p.consignee)}</span>`:'');
   document.getElementById('detailGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">📊 발매 퍼트</span><button class="btn-add" onclick="openModal('addPertModal')">+ 일정 추가</button></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderGantt(p,true)}`;
   document.getElementById('detailFactoryGantt').innerHTML=`<div class="pc-head" style="cursor:default"><span class="pc-name">🏭 오송 퍼트 <span style="font-size:11px;font-weight:500;color:var(--tx4);margin-left:4px">(부서별 할일 시작일~기한 기준)</span></span></div><div class="pc-progress"><div style="height:2px;background:var(--ac-dim)"></div></div>${renderFactoryGantt(p,pi)}`;
   renderDeptTasks(pi);
@@ -1206,6 +1357,7 @@ function renderDeptTasks(pi){
     </table>
   </div>`;
 }
+let dragSrcIdx=null;
 function deptDragStart(e,idx){dragSrcIdx=idx;e.currentTarget.classList.add('dragging');}
 function deptDragOver(e){e.preventDefault();}
 function deptDragEnd(e){e.currentTarget.classList.remove('dragging');}
@@ -1232,22 +1384,30 @@ async function inlineDeptUpdate(pi,i,field,value){
 
 function openEditProductModal(){
   const p=products[curProduct];
-  const map={eprodName:'name',eprodReleaseDate:'releaseDate',eprodProfitGroup:'profitGroup',eprodEstPrice:'estPrice',eprodMfgUnit:'mfgUnit',eprodGroup:'group'};
+  const map={eprodName:'name',eprodReleaseDate:'releaseDate',eprodProfitGroup:'profitGroup',eprodEstPrice:'estPrice',eprodMfgUnit:'mfgUnit',eprodConsignee:'consignee'};
   Object.entries(map).forEach(([id,key])=>{
     const val=p[key]||'';
     document.getElementById(id).value=(id==='eprodReleaseDate')?toMonthVal(val):val;
   });
   document.getElementById('eprodType').value=p.type||'자체';document.getElementById('eprodStatus').value=p.status||'정상';
+  toggleConsigneeField('eprod');
   openModal('editProductModal');
+}
+// 개발구분에 '위탁'이 포함되면 위탁처 입력칸을 보여줌
+function toggleConsigneeField(prefix){
+  const typeVal=document.getElementById(prefix+'Type').value||'';
+  const wrap=document.getElementById(prefix+'ConsigneeWrap');
+  if(wrap)wrap.style.display=typeVal.includes('위탁')?'block':'none';
 }
 async function submitEditProduct(){
   const p=products[curProduct],name=document.getElementById('eprodName').value.trim();if(!name)return;
-  p.name=name;['releaseDate','profitGroup','estPrice','mfgUnit','group'].forEach((k,i)=>{
-    let v=document.getElementById(['eprodReleaseDate','eprodProfitGroup','eprodEstPrice','eprodMfgUnit','eprodGroup'][i]).value.trim();
+  p.name=name;['releaseDate','profitGroup','estPrice','mfgUnit','consignee'].forEach((k,i)=>{
+    let v=document.getElementById(['eprodReleaseDate','eprodProfitGroup','eprodEstPrice','eprodMfgUnit','eprodConsignee'][i]).value.trim();
     if(k==='releaseDate')v=fromMonthVal(v);
     p[k]=v;
   });
   p.type=document.getElementById('eprodType').value;p.status=document.getElementById('eprodStatus').value;
+  if(!p.type.includes('위탁'))p.consignee='';
   closeModal('editProductModal');
   showLoading('제품 정보 저장 중...');
   await apiCall('updateProduct', {productId: p.id, ...p});
@@ -1256,8 +1416,10 @@ async function submitEditProduct(){
 }
 async function submitProduct(){
   const name=document.getElementById('mpName').value.trim();if(!name)return;
-  const newProduct={name,releaseDate:fromMonthVal(document.getElementById('mpReleaseDate').value),profitGroup:document.getElementById('mpProfitGroup').value.trim(),estPrice:document.getElementById('mpEstPrice').value.trim(),mfgUnit:document.getElementById('mpMfgUnit').value.trim(),group:document.getElementById('mpGroup').value.trim(),type:document.getElementById('mpType').value,status:document.getElementById('mpStatus').value,pert:[],dept:makeStandardDept()};
-  ['mpName','mpReleaseDate','mpProfitGroup','mpEstPrice','mpMfgUnit','mpGroup'].forEach(id=>document.getElementById(id).value='');
+  const typeVal=document.getElementById('mpType').value;
+  const newProduct={name,releaseDate:fromMonthVal(document.getElementById('mpReleaseDate').value),profitGroup:document.getElementById('mpProfitGroup').value.trim(),estPrice:document.getElementById('mpEstPrice').value.trim(),mfgUnit:document.getElementById('mpMfgUnit').value.trim(),consignee:typeVal.includes('위탁')?document.getElementById('mpConsignee').value.trim():'',type:typeVal,status:document.getElementById('mpStatus').value,pert:[],dept:makeStandardDept()};
+  ['mpName','mpReleaseDate','mpProfitGroup','mpEstPrice','mpMfgUnit','mpType','mpConsignee'].forEach(id=>document.getElementById(id).value='');
+  toggleConsigneeField('mp');
   closeModal('addProductModal');
   showLoading('신제품 저장 중...');
   const res = await apiCall('addProduct', newProduct);
@@ -1468,11 +1630,6 @@ function renderInsightSummary({total,진행,검토,보류,지연,자체,위탁,d
   }
   el.innerHTML=`<div class="insight-title">📝 통합 운영 진단</div><div class="insight-body">${sentences.join(' ')}</div>`;
 }
-let expandedSummaryGroups=new Set();
-function toggleSummaryGroup(g){
-  if(expandedSummaryGroups.has(g))expandedSummaryGroups.delete(g);else expandedSummaryGroups.add(g);
-  renderProgressSummary();
-}
 function ddayToMonthLabel(dday){
   if(dday===null||dday===undefined||isNaN(dday))return '발매일 미정';
   const totalMonths=Math.round(Math.abs(dday)/30);
@@ -1509,81 +1666,106 @@ function buildSummaryRow(p,dday,pct,done,total){
     <div style="width:120px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:800;color:${ddayColor};margin-top:3px">${ddayLabel}</div>
   </div>`;
 }
-let summaryGroupOrder=[];
-let summaryDragSrc=null;
-function summaryDragStart(e,g){summaryDragSrc=g;e.currentTarget.style.opacity='.4';}
-function summaryDragEnd(e){e.currentTarget.style.opacity='1';document.querySelectorAll('.summary-group-row').forEach(r=>r.style.outline='');}
-function summaryDragOver(e,g){e.preventDefault();if(summaryDragSrc===g)return;document.querySelectorAll('.summary-group-row').forEach(r=>r.style.outline='');e.currentTarget.style.outline='2px dashed var(--ac)';}
-function summaryDrop(e,g){
+function buildBundleSummaryRow(b,dday,pct,done,total){
+  const isOpen=expandedBundles.has(b.id);
+  const barColor=pct>=70?'var(--ok)':'var(--ac)';
+  const ddayLabel=ddayToMonthLabel(dday);
+  const ddayColor=dday===null?'var(--tx4)':dday<0?'var(--warn)':dday<=30?'var(--duo-text)':'var(--tx3)';
+  const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+  const header=`<div class="progress-row" onclick="toggleBundle('${b.id}')" style="align-items:flex-start;cursor:pointer">
+    <div style="width:220px;flex-shrink:0;min-width:0">
+      <div style="font-size:13px;font-weight:700;color:var(--ac);white-space:normal;overflow-wrap:break-word;line-height:1.35">🗂 ${esc(b.name)}</div>
+      <span class="badge" style="background:var(--ac-light);color:var(--ac);margin-top:3px;font-size:10px;padding:1px 7px">${members.length}개 ${isOpen?'▲':'▼'}</span>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0;margin-top:3px">
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <span style="font-size:12px;font-weight:700;color:${barColor};width:38px;text-align:right;flex-shrink:0">${pct}%</span>
+      <span style="font-size:11px;color:var(--tx3);flex-shrink:0;white-space:nowrap">${done}/${total}건</span>
+    </div>
+    <div style="width:120px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:800;color:${ddayColor};margin-top:3px">${ddayLabel}</div>
+  </div>`;
+  const rows=isOpen?members.map(p=>{
+    const d=calcDday(p);const {pct:mp,done:md,total:mt}=calcBigPct(p);
+    return buildSummaryRow(p,d,mp,md,mt);
+  }).join(''):'';
+  return `<div style="margin-bottom:2px;border-bottom:1px solid var(--bd)">${header}${rows}</div>`;
+}
+let summaryDragTok=null;
+function summaryItemDragStart(e,tok){summaryDragTok=tok;e.currentTarget.style.opacity='.4';}
+function summaryItemDragEnd(e){e.currentTarget.style.opacity='1';document.querySelectorAll('.summary-drag-item').forEach(x=>x.style.outline='');}
+function summaryItemDragOver(e,tok){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.summary-drag-item').forEach(x=>x.style.outline='');
+  e.currentTarget.style.outline='2px dashed var(--ac)';
+}
+function summaryItemDrop(e,tok){
   e.preventDefault();e.currentTarget.style.outline='';
-  if(!summaryDragSrc||summaryDragSrc===g)return;
-  const fi=summaryGroupOrder.indexOf(summaryDragSrc),ti=summaryGroupOrder.indexOf(g);
-  if(fi<0||ti<0)return;
-  summaryGroupOrder.splice(fi,1);summaryGroupOrder.splice(ti,0,summaryDragSrc);
-  summaryDragSrc=null;
-  sessionStorage.setItem('summaryGroupOrder',JSON.stringify(summaryGroupOrder));
+  if(!summaryDragTok||summaryDragTok===tok)return;
+  // 현재 화면에 보이는 순서를 기준으로 새 순서를 만들어 저장 (이후 임박순 자동정렬 대신 이 순서를 씀)
+  const order=[...document.querySelectorAll('.summary-drag-item')].map(x=>x.dataset.tok);
+  const from=order.indexOf(summaryDragTok),to=order.indexOf(tok);
+  if(from<0||to<0)return;
+  order.splice(from,1);
+  order.splice(to,0,summaryDragTok);
+  summaryOrder=order;
+  sessionStorage.setItem('summaryOrder',JSON.stringify(summaryOrder));
+  summaryDragTok=null;
   renderProgressSummary();
 }
 function renderProgressSummary(){
   const el=document.getElementById('progressSummaryCard');
   if(!el)return;
-  const withDday=products.map(p=>{
-    const dday=calcDday(p);
-    const {pct,done,total}=calcBigPct(p);
-    return {p,dday,pct,done,total};
-  });
-  if(!withDday.length){
+  if(!products.length){
     el.innerHTML=`<div class="dept-head"><span style="font-size:14px;font-weight:800;color:var(--tx1)">📌 진행중 과제 요약</span></div><div style="padding:16px;color:var(--tx4);font-size:12px;text-align:center">등록된 신제품이 없습니다.</div>`;
     return;
   }
-  // 그룹별로 묶기
-  const groups={};
-  withDday.forEach(item=>{const g=getGroupName(item.p);(groups[g]=groups[g]||[]).push(item);});
-  Object.values(groups).forEach(arr=>arr.sort((a,b)=>{
+  syncTopOrder();
+  const bundledIds=new Set(Object.values(bundles).flatMap(b=>b.productIds));
+  const entries=[];
+  Object.values(bundles).forEach(b=>{
+    const members=b.productIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+    if(!members.length)return;
+    const ddays=members.map(p=>calcDday(p)).filter(d=>d!==null);
+    const dday=ddays.length?Math.min(...ddays):null;
+    const done=members.reduce((s,p)=>s+calcBigPct(p).done,0);
+    const total=members.reduce((s,p)=>s+calcBigPct(p).total,0);
+    const pct=total?Math.round(done/total*100):0;
+    entries.push({type:'bundle',b,dday,pct,done,total,tok:'b:'+b.id});
+  });
+  products.forEach(p=>{
+    if(bundledIds.has(p.id))return;
+    const dday=calcDday(p);const {pct,done,total}=calcBigPct(p);
+    entries.push({type:'product',p,dday,pct,done,total,tok:'p:'+p.id});
+  });
+  const byDday=(a,b)=>{
     if(a.dday===null&&b.dday===null)return 0;
     if(a.dday===null)return 1;
     if(b.dday===null)return -1;
     return a.dday-b.dday;
-  }));
-  // 그룹 정렬: 그룹 내 가장 임박한 d-day 순
-  const groupNames=Object.keys(groups).sort((a,b)=>{
-    const da=groups[a][0].dday,db=groups[b][0].dday;
-    if(da===null&&db===null)return 0;
-    if(da===null)return 1;
-    if(db===null)return -1;
-    return da-db;
-  });
-  // 저장된 그룹 순서 적용
-  const savedGroupOrder=JSON.parse(sessionStorage.getItem('summaryGroupOrder')||'[]');
-  const orderedGroups=savedGroupOrder.length
-    ?[...savedGroupOrder.filter(g=>groups[g]),...groupNames.filter(g=>!savedGroupOrder.includes(g))]
-    :groupNames;
-  summaryGroupOrder=[...orderedGroups];
-  const body=orderedGroups.map(g=>{
-    const items=groups[g];
-    const isOpen=expandedSummaryGroups.has(g);
-    const soonest=items[0]; // 이미 d-day 임박순 정렬됨
-    const ddayLabel=ddayToMonthLabel(soonest.dday);
-    const ddayColor=soonest.dday===null?'var(--tx4)':soonest.dday<0?'var(--warn)':soonest.dday<=30?'var(--duo-text)':'var(--tx3)';
-    const gDone=items.reduce((s,it)=>s+it.done,0),gTotal=items.reduce((s,it)=>s+it.total,0);
-    const gPct=gTotal?Math.round(gDone/gTotal*100):0;
-    const safeG=esc(g).replace(/'/g,"\\'");
-    const headerRow=`<div class="summary-group-row" onclick="toggleSummaryGroup('${safeG}')" draggable="true" ondragstart="summaryDragStart(event,'${safeG}')" ondragend="summaryDragEnd(event)" ondragover="summaryDragOver(event,'${safeG}')" ondrop="summaryDrop(event,'${safeG}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:grab;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--ac-light)'" onmouseout="this.style.background='transparent'">
-        <span style="font-size:10px;color:var(--tx4);flex-shrink:0">⠿</span>
-        <span style="font-size:11px;color:var(--tx3);width:14px;flex-shrink:0">${isOpen?'▼':'▶'}</span>
-        <span style="font-size:13px;font-weight:800;color:var(--ac);flex-shrink:0">📦 ${esc(g)}</span>
-        <span style="font-size:10.5px;font-weight:700;color:var(--tx3);background:var(--ac-light);padding:1px 8px;border-radius:20px;flex-shrink:0">${items.length}건</span>
-        <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0">
-          <div class="progress-track"><div class="progress-fill" style="width:${gPct}%;background:var(--ac)"></div></div>
-          <span style="font-size:11.5px;font-weight:700;color:var(--ac);flex-shrink:0">${gPct}%</span>
-        </div>
-        <span style="width:120px;text-align:right;flex-shrink:0;font-size:12px;font-weight:800;color:${ddayColor}">${ddayLabel}</span>
-      </div>`;
-    const rows=isOpen?items.map(({p,dday,pct,done,total})=>buildSummaryRow(p,dday,pct,done,total)).join(''):'';
-    return `<div style="margin-bottom:2px;border-bottom:1px solid var(--bd)">${headerRow}${rows}</div>`;
+  };
+  if(summaryOrder.length){
+    // 수동으로 옮긴 순서를 우선 적용, 순서에 없는 새 항목은 임박순으로 뒤에 붙임
+    const orderMap={};summaryOrder.forEach((t,i)=>orderMap[t]=i);
+    entries.sort((a,b)=>{
+      const ai=orderMap[a.tok],bi=orderMap[b.tok];
+      if(ai!==undefined&&bi!==undefined)return ai-bi;
+      if(ai!==undefined)return -1;
+      if(bi!==undefined)return 1;
+      return byDday(a,b);
+    });
+  }else{
+    entries.sort(byDday);
+  }
+  const body=entries.map(e=>{
+    const inner=e.type==='bundle'
+      ?buildBundleSummaryRow(e.b,e.dday,e.pct,e.done,e.total)
+      :buildSummaryRow(e.p,e.dday,e.pct,e.done,e.total);
+    return `<div class="summary-drag-item" data-tok="${e.tok}" draggable="true" ondragstart="summaryItemDragStart(event,'${e.tok}')" ondragend="summaryItemDragEnd(event)" ondragover="summaryItemDragOver(event,'${e.tok}')" ondrop="summaryItemDrop(event,'${e.tok}')" style="cursor:grab;border-radius:10px">${inner}</div>`;
   }).join('');
-  el.innerHTML=`<div class="dept-head"><span style="font-size:14px;font-weight:800;color:var(--tx1)">📌 진행중 과제 요약</span><span style="font-size:11.5px;color:var(--tx3)">그룹별 · 발매일 임박 순</span></div><div style="padding:6px 4px">${body}</div>`;
+  const orderLabel=summaryOrder.length?'직접 지정한 순서':'발매일 임박 순';
+  el.innerHTML=`<div class="dept-head"><span style="font-size:14px;font-weight:800;color:var(--tx1)">📌 진행중 과제 요약</span><span style="font-size:11.5px;color:var(--tx3)">${orderLabel}${summaryOrder.length?' <a href="javascript:void(0)" onclick="resetSummaryOrder()" style="color:var(--ac);text-decoration:underline;margin-left:6px">임박순으로 되돌리기</a>':''}</span></div><div style="padding:6px 4px">${body}</div>`;
 }
+function resetSummaryOrder(){summaryOrder=[];sessionStorage.removeItem('summaryOrder');renderProgressSummary();}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
